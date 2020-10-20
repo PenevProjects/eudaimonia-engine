@@ -18,6 +18,8 @@ endif()
 
 add_executable(eudaimonia
 	src/main.cpp
+	src/core.h
+	src/core.cpp
 
 )
 
