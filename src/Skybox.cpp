@@ -31,7 +31,7 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 
 
 	//setup vars
-	std::unique_ptr<Shader> equirectToCubemapShader = std::make_unique<Shader>(".../src/shaders/pbr/cubemap.vert", "../src/shaders/pbr/equirectangular-to-cubemap.frag");
+	std::unique_ptr<Shader> equirectToCubemapShader = std::make_unique<Shader>("../src/shaders/pbr/cubemap.vert", "../src/shaders/pbr/equirectangular-to-cubemap.frag");
 	std::unique_ptr<Shader> irradianceConvShader = std::make_unique<Shader>("../src/shaders/pbr/cubemap.vert", "../src/shaders/pbr/cubemap-conv.frag");
 	std::unique_ptr<Shader> prefilterConvShader = std::make_unique<Shader>("../src/shaders/pbr/cubemap.vert", "../src/shaders/pbr/prefilter-conv.frag");
 	std::unique_ptr<Shader> brdfLutShader = std::make_unique<Shader>("../src/shaders/pbr/framebuf-quad.vert", "../src/shaders/pbr/brdf-lut.frag");

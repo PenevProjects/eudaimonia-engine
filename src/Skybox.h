@@ -12,7 +12,7 @@
 
 class Skybox
 {
-	//friend class Texture;
+	friend class Texture;
 public:
 	/**\brief Creates an environment skybox from an HDR equirectangular image.
 	*

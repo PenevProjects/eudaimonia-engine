@@ -265,11 +265,11 @@ int main(int argc, char *argv[])
 
 		// bind pre-computed IBL data
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetIrradianceMap().lock()->m_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetIrradianceMap().lock()->GetId());
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterMap().lock()->m_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterMap().lock()->GetId());
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 3);
-		glBindTexture(GL_TEXTURE_2D, skybox->GetBrdfLUT().lock()->m_id);
+		glBindTexture(GL_TEXTURE_2D, skybox->GetBrdfLUT().lock()->GetId());
 
 		//UNCOMMENT FOR CAR
 		if (renderCar)
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 		skyboxShader->Use();
 		skyboxShader->setViewAndProjectionMatrix(*cam1, true);
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetSkyboxMap().lock()->m_id);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetSkyboxMap().lock()->GetId());
 		skybox->RenderCube();
 		skyboxShader->StopUsing();
 		glBindVertexArray(0);

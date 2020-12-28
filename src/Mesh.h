@@ -32,6 +32,7 @@ struct Colors {
 };
 
 class Mesh {
+	friend class Texture;
 public:
 	std::vector<Vertex> m_vertices;
 	std::vector<unsigned int> m_indices;
@@ -46,7 +47,7 @@ public:
 	Mesh(const Mesh&) = delete;
 	
 	/**
-	* @param _shader A shader object passed by const-ref, because the object needs to be only inspected.
+	* @param _shader A shader object passed by const-ref, because we don't want to transfer ownership.
 	*/
 	void Render(const Shader &_shader);
 

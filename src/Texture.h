@@ -19,11 +19,11 @@
 *OpenGL encapsulates glTexture objects within the API. Memory management for glTextures is not controlled by the user -
 *this makes copy and copy assignment constructors dangerous to use, so they are deleted.
 **/
-struct Texture {
+class Texture {
 	friend class Skybox;
 	friend class Model;
 	friend class Mesh;
-
+public:
 	///2D Texture from path.
 	Texture(std::string _path, std::string _typeName, bool _gamma=false);
 	///2D Texture from embedded texture.
@@ -37,10 +37,8 @@ struct Texture {
 	Texture& operator=(const Texture&) = delete;
 
 	static unsigned int LoadCubemap(std::vector<std::string> _textureFaces);
-	static unsigned int EmptyCubemap(int _width, int _height);
-	static void LoadHDR(unsigned int &_inout, std::string _pathToHDR);
-
-
+	unsigned int GetId() { return m_id; }
+private:
 	unsigned int m_id;
 	std::string m_typeName;
 	std::string m_path;
