@@ -11,17 +11,22 @@
 
 namespace chrono
 {
-	class Core
-	{
-	public:
-		std::shared_ptr<Core> Initialize();
+class Entity;
+class Component;
+class Transform;
 
-	private:
-		Core();
-		~Core();
-		//weak ptr for passing to hierarchical objects without transferring ownership.
-		std::weak_ptr<Core> m_self;
-		SDL_Window *m_window;
+class Core
+{
+	friend class Entity;
+	friend class Component;
+public:
+	std::shared_ptr<Core> Initialize();
+	std::shared_ptr<Entity> AddEntity();
+private:
 
-	};
+	//weak ptr for passing to hierarchical objects without transferring ownership.
+	std::weak_ptr<Core> m_self;
+	SDL_Window *m_window;
+
+};
 }

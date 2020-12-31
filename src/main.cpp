@@ -19,6 +19,9 @@
 #include "Framebuffer.h"
 #include "Skybox.h"
 
+#include "Core.h"
+#include "Entity.h"
+
 
 
 int main(int argc, char *argv[])
@@ -28,7 +31,6 @@ int main(int argc, char *argv[])
 	while (!(skyboxChoice == 1 || skyboxChoice == 2 || skyboxChoice == 3))
 	{
 		std::cout << "select skybox: [1 | 2 | 3]: ";
-		std::cin >> skyboxChoice;
 	}
 	bool renderCar = false;
 	char carSelection;
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
 	{
 		renderCar = true;
 	}
+
 
 	// Global SDL state
 	// -------------------------------
@@ -84,6 +87,7 @@ int main(int argc, char *argv[])
 	std::unique_ptr<Shader> lampShader = std::make_unique<Shader>("../src/shaders/pure-white.vert", "../src/shaders/pure-white.frag");
 	std::unique_ptr<Shader> skyboxShader = std::make_unique<Shader>("../src/shaders/skybox.vert", "../src/shaders/skybox.frag");
 	std::unique_ptr<Shader> pbrShader = std::make_unique<Shader>("../src/shaders/pbr/pbr.vert", "../src/shaders/pbr/pbr.frag");
+
 
 
 	//Max number of texture units that can be used concurrently from a model file is currently 9. 

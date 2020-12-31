@@ -37,6 +37,14 @@ add_executable(eudaimonia
 	src/FrameBuffer.cpp
 	src/Skybox.h
 	src/Skybox.cpp
+	src/Core.h
+	src/Core.cpp
+	src/Entity.h
+	src/Entity.cpp
+	src/Component.h
+	src/Component.cpp
+	src/Transform.h
+	src/Transform.cpp
 )
 
 target_link_libraries(eudaimonia

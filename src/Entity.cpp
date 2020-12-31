@@ -1,19 +1,18 @@
 #include "Entity.h"
+#include "Component.h"
+#include <exception>
+#include <string>
+#include <iostream>
 
 namespace chrono
 {
 
-template <typename T, typename ... Args>
-std::shared_ptr<T> Entity::addComponent(Args&&... args)
+void Entity::Tick()
 {
-	std::shared_ptr<T> temp = std::make_shared<T>();
-	temp->entity = self;
-
-	m_components.push_back(temp);
-
-	temp->onInitialize(std::forward<Args>(args)...);
-
-	return temp;
+	for (const auto& component : m_components)
+	{
+		component->Tick();
+	}
 }
 
 } //namespace chrono

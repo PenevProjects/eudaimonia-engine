@@ -1,15 +1,12 @@
 #include "Core.h"
 #include "Camera.h"
+#include "Entity.h"
+#include "Transform.h"
 
 namespace chrono
 {
 
 
-Core::Core()
-{}
-
-Core::~Core()
-{}
 
 std::shared_ptr<Core> Core::Initialize()
 {
@@ -59,8 +56,20 @@ std::shared_ptr<Core> Core::Initialize()
 	return obj;
 }
 
+std::shared_ptr<Entity> Core::AddEntity()
+{
+	std::shared_ptr<Entity> entityObj = std::make_shared<Entity>();
+	entityObj->m_self = entityObj;
+	entityObj->m_core = m_self;
 
+	entityObj->transform = entityObj->AddComponent<Transform>();
 
-
+	return entityObj;
 }
+
+
+
+
+
+} //namespace chrono
 
