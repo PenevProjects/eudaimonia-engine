@@ -37,6 +37,8 @@ add_executable(eudaimonia
 	src/FrameBuffer.cpp
 	src/Skybox.h
 	src/Skybox.cpp
+	src/Exception.h
+	src/Exception.cpp
 	src/Core.h
 	src/Core.cpp
 	src/Entity.h

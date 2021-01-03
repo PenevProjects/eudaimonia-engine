@@ -4,7 +4,11 @@
 #include <iostream>
 #include <exception>
 #include <string>
+#include <unordered_map>
+#include <typeinfo>
+#include <typeindex>
 
+#include "Exception.h"
 
 namespace chrono 
 {
@@ -29,17 +33,17 @@ public:
 		{
 			componentObj = std::make_shared<T>();
 			if (!componentObj)
-				throw std::exception("Unsuccessful AddComponent. AddComponent<T> expects a Component type T.");
+				throw Exception("Unsuccessful AddComponent. AddComponent<T> expects a Component type T.");
 		}
-		catch (std::exception& e)
+		catch (Exception& e)
 		{
-			std::cerr << e.what() << std::endl;
+			std::cout << e.what() << std::endl;
 		}
 		componentObj->self = componentObj;
 		componentObj->entity = m_self;
 		componentObj->core = this->GetCore();
 
-		this->m_components.push_back(componentObj);
+		components[std::type_index(typeid(*Component))]{ componentObj };;
 
 		componentObj->onInitialize();
 
@@ -50,25 +54,33 @@ public:
 	std::shared_ptr<T> AddComponent(Args&&... args)
 	{
 		std::shared_ptr<T> componentObj;
-		try
-		{
-			componentObj = std::make_shared<T>();
-			if (!componentObj)
-				throw std::exception("Unsuccessful AddComponent. AddComponent<T> expects a Component class T.");
-		}
-		catch (std::exception& e)
-		{
-			std::cerr << e.what() << std::endl;
-		}
+		componentObj = std::make_shared<Component>();
+		if (!componentObj) { std::cout << "This component couldn't be added."; << std::endl; }
+
 		componentObj->self = componentObj;
 		componentObj->entity = m_self;
 		componentObj->core = this->GetCore();
 
-		m_components.push_back(componentObj);
+		components[std::type_index(typeid(*Component))]{ componentObj };
 
 		componentObj->onInitialize(std::forward<Args>(args)...);
 
 		return componentObj;
+	}
+
+	template <typename T>
+	std::shared_ptr<T> GetComponent()
+	{
+		std::type_index index{ typeid(T) };
+		if (components.count(std::type_index(typeid(T)) != 0))
+		{
+			return static_pointer_cast<T>(components[index]);
+		}
+		else
+		{
+			std::cout << "No such component attached to this entity.";
+		}
+		return nullptr;
 	}
 
 	void Tick();
@@ -76,7 +88,7 @@ public:
 private:
 	std::weak_ptr<Entity> m_self;
 	std::weak_ptr<Core> m_core;
-	std::vector<std::shared_ptr<Component>> m_components;
+	std::unordered_map<std::type_index, std::shared_ptr<Component>> components;
 	std::shared_ptr<Transform> transform;
 };
 

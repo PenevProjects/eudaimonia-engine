@@ -9,9 +9,9 @@ namespace chrono
 
 void Entity::Tick()
 {
-	for (const auto& component : m_components)
+	for (const auto& component : components)
 	{
-		component->Tick();
+		component.second->Tick();
 	}
 }
 

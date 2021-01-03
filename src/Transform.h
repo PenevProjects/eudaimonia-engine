@@ -11,7 +11,10 @@ namespace chrono
 
 class Transform : public Component {
 public:
-	Transform() {}
+	Transform() 
+	{ 
+		id = Component::Transform; 
+	}
 	void OnInitialize();
 	glm::mat4 GetModelMatrix() const;
 

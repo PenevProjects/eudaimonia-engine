@@ -21,6 +21,8 @@
 
 #include "Core.h"
 #include "Entity.h"
+#include "Component.h"
+#include "Transform.h"
 
 
 
@@ -40,6 +42,16 @@ int main(int argc, char *argv[])
 	{
 		renderCar = true;
 	}
+
+
+	//ENGINE TESTING
+	auto core = std::make_shared<chrono::Core>();
+	core = core->Initialize();
+	auto entity = core->AddEntity();
+	std::cout << "WANTED TRANSFORM: " << entity->GetComponent<chrono::Transform>();
+
+
+
 
 
 	// Global SDL state
