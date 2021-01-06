@@ -1,75 +1,20 @@
 #include "Core.h"
-#include "Camera.h"
+#include "Component.h"
 #include "Entity.h"
-#include "Transform.h"
 
-namespace chrono
+void Core::setup()
 {
+	entity_manager_ = std::make_shared<EntityManager>();
+	transform_manager_ = std::make_shared<ComponentTypeManager<TransformComponent>>(entity_manager_);
 
 
-
-std::shared_ptr<Core> Core::Initialize()
-{
-	std::shared_ptr<Core> obj = std::make_shared<Core>();
-	obj->m_self = obj;
-
-	// Global SDL state
-	// -------------------------------
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
-		throw std::exception();
-	}
-
-	SDL_GL_SetSwapInterval(0); //disable vsync evil
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
-	m_window = SDL_CreateWindow("CHRONO ENGINE: ",
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		WINDOW_WIDTH, WINDOW_HEIGHT,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
-
-	// Lock in mouse
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
-	if (!SDL_GL_CreateContext(m_window))
-	{
-		throw std::exception();
-	}
-
-
-	// Global OpenGL state
-	// ---------------------------------
-	if (glewInit() != GLEW_OK)
-	{
-		throw std::exception();
-	}
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL); // for skybox rendering
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); //// for lower mip levels in the pre-filter map.
-
-	// turn on multisample anti-aliasing
-	glEnable(GL_MULTISAMPLE);
-	//ensure multisampling is nicest quality
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
-	return obj;
+	std::shared_ptr<Entity> entity = entity_manager_->create_entity();
+	std::shared_ptr<Entity> entity2 = entity_manager_->create_entity();
+	std::shared_ptr<Entity> entity3 = entity_manager_->create_entity();
+	std::shared_ptr<TransformComponent> component = transform_manager_->add_component(entity, 5, 6);
+	std::shared_ptr<TransformComponent> component1 = transform_manager_->add_component(entity2, 8, 8);
+	std::shared_ptr<TransformComponent> component2 = transform_manager_->add_component(entity, 5, 6);
+	std::shared_ptr<TransformComponent> component3 = transform_manager_->add_component(entity, 5, 6);
+	auto tr = transform_manager_->get_component(entity);
+	auto tr2 = transform_manager_->get_component(entity3);
 }
-
-std::shared_ptr<Entity> Core::AddEntity()
-{
-	std::shared_ptr<Entity> entityObj = std::make_shared<Entity>();
-	entityObj->m_self = entityObj;
-	entityObj->m_core = m_self;
-
-	entityObj->transform = entityObj->AddComponent<Transform>();
-
-	return entityObj;
-}
-
-
-
-
-
-} //namespace chrono
-

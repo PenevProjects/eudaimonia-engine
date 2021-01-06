@@ -9,12 +9,8 @@
 namespace chrono 
 {
 
-class Transform : public Component {
+class Transform {
 public:
-	Transform() 
-	{ 
-		id = Component::Transform; 
-	}
 	void OnInitialize();
 	glm::mat4 GetModelMatrix() const;
 

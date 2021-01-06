@@ -44,13 +44,8 @@ int main(int argc, char *argv[])
 	}
 
 
-	//ENGINE TESTING
-	auto core = std::make_shared<chrono::Core>();
-	core = core->Initialize();
-	auto entity = core->AddEntity();
-	std::cout << "WANTED TRANSFORM: " << entity->GetComponent<chrono::Transform>();
 
-
+	auto manager = chrono::EntityManager::create();
 
 
 

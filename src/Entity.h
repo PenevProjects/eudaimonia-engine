@@ -4,92 +4,91 @@
 #include <iostream>
 #include <exception>
 #include <string>
-#include <unordered_map>
-#include <typeinfo>
-#include <typeindex>
+#include <map>
+#include <bitset>
+#include <utility>
 
-#include "Exception.h"
 
-namespace chrono 
-{
-class Core;
-class Transform;
-class Component;
+#include "Component.h"
+#include "Core.h"
 
+#define MAX_COMPONENT_TYPES 64
+
+
+typedef std::bitset<MAX_COMPONENT_TYPES> ComponentMask;
+
+
+class EntityManager;
 class Entity
 {
-	friend class Core;
-	friend class Component;
+	friend class EntityManager;
+	template<typename T>
+	friend class ComponentTypeManager;
+
+	ComponentMask component_mask_;
+	uint32_t id_;
+	std::weak_ptr<EntityManager> manager_;
+
 public:
-	Entity() {}
-	Entity(const Entity&) = delete; //TODO
-	Entity operator=(const Entity&) = delete; //TODO
+	Entity(std::weak_ptr<EntityManager> em, uint32_t id) : id_(id), manager_(em) {}
 
-	template <typename T>
-	std::shared_ptr<T> AddComponent()
+	uint32_t id() { return this->id_; }
+	
+	template<typename T>
+	std::shared_ptr<T> get_component()
 	{
-		std::shared_ptr<T> componentObj;
-		try
-		{
-			componentObj = std::make_shared<T>();
-			if (!componentObj)
-				throw Exception("Unsuccessful AddComponent. AddComponent<T> expects a Component type T.");
-		}
-		catch (Exception& e)
-		{
-			std::cout << e.what() << std::endl;
-		}
-		componentObj->self = componentObj;
-		componentObj->entity = m_self;
-		componentObj->core = this->GetCore();
-
-		components[std::type_index(typeid(*Component))]{ componentObj };;
-
-		componentObj->onInitialize();
-
-		return componentObj;
 	}
-
-	template <typename T, typename ... Args>
-	std::shared_ptr<T> AddComponent(Args&&... args)
-	{
-		std::shared_ptr<T> componentObj;
-		componentObj = std::make_shared<Component>();
-		if (!componentObj) { std::cout << "This component couldn't be added."; << std::endl; }
-
-		componentObj->self = componentObj;
-		componentObj->entity = m_self;
-		componentObj->core = this->GetCore();
-
-		components[std::type_index(typeid(*Component))]{ componentObj };
-
-		componentObj->onInitialize(std::forward<Args>(args)...);
-
-		return componentObj;
-	}
-
-	template <typename T>
-	std::shared_ptr<T> GetComponent()
-	{
-		std::type_index index{ typeid(T) };
-		if (components.count(std::type_index(typeid(T)) != 0))
-		{
-			return static_pointer_cast<T>(components[index]);
-		}
-		else
-		{
-			std::cout << "No such component attached to this entity.";
-		}
-		return nullptr;
-	}
-
-	void Tick();
-	std::shared_ptr<Core> GetCore() { return m_core.lock(); }
-private:
-	std::weak_ptr<Entity> m_self;
-	std::weak_ptr<Core> m_core;
-	std::unordered_map<std::type_index, std::shared_ptr<Component>> components;
-	std::shared_ptr<Transform> transform;
 };
 
-} //namespace chrono
+
+
+
+class EntityManager
+	: public std::enable_shared_from_this<EntityManager>
+{
+	friend class Entity;
+
+	template<typename T>
+	friend class ComponentTypeManager;
+
+	//entities vector
+	std::vector<std::shared_ptr<Entity>> entities_;
+
+	//maximum entity count is capacity of uint32_t ~ 4.3 billion
+	uint32_t used_ids_;
+	std::shared_ptr<ComponentMask> component_bitmask_;
+
+
+public:
+
+	EntityManager() : used_ids_(0), component_bitmask_(std::make_shared<ComponentMask>()) {}
+	
+	/**	 Creates an Entity!
+	*
+	*
+	*
+	*
+	*
+	**/
+	std::shared_ptr<Entity> create_entity()
+	{
+		try {
+			if (used_ids_ == 0xffffffffUL)
+			{
+				throw std::exception("Maximum entity count reached!");
+				used_ids_--;
+			}
+		}
+		catch (std::exception& e) {
+			std::cout << e.what() << std::endl;
+			return nullptr;
+		}
+		auto newEntity = std::make_shared<Entity>(weak_from_this(), used_ids_);
+		entities_.emplace_back(newEntity);
+		used_ids_++;
+		return newEntity;
+	}
+
+	uint32_t entities_count() const { return entities_.size(); }
+
+};

@@ -1,32 +1,40 @@
 #pragma once
 #include <memory>
-#include <SDL2/SDL.h>
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
+#include <vector>
 #include <iostream>
 #include <exception>
-#include <vector>
+#include <string>
+#include <map>
+#include <bitset>
+#include <utility>
 
 
-namespace chrono
-{
-class Entity;
-class Component;
-class Transform;
+
+class EntityManager;
+
+template<typename T>
+class ComponentTypeManager;
+
+class TransformComponent;
+struct ComponentBitMask;
 
 class Core
 {
-	friend class Entity;
-	friend class Component;
-public:
-	std::shared_ptr<Core> Initialize();
-	std::shared_ptr<Entity> AddEntity();
-private:
+	std::shared_ptr<EntityManager> entity_manager_;
+	std::shared_ptr<ComponentTypeManager<TransformComponent>> transform_manager_;
 
-	//weak ptr for passing to hierarchical objects without transferring ownership.
-	std::weak_ptr<Core> m_self;
-	SDL_Window *m_window;
+	friend class Entity;
+	friend class EntityManager;
+public:
+	Core() = default;
+
+	static std::shared_ptr<Core> create_core()
+	{
+		return std::make_shared<Core>();
+	}
+
+	void setup();
+
 
 };
-}
+
