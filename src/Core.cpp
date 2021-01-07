@@ -1,20 +1,21 @@
 #include "Core.h"
-#include "Component.h"
 #include "Entity.h"
+#include "Component.h"
 
 void Core::setup()
 {
-	entity_manager_ = std::make_shared<EntityManager>();
-	transform_manager_ = std::make_shared<ComponentTypeManager<TransformComponent>>(entity_manager_);
-
+	component_manager_ = std::make_shared<ComponentManager>();
+	entity_manager_ = std::make_shared<EntityManager>(component_manager_);
+	auto transform_manager_ = component_manager_->create_ComponentTypeManager<TransformComponent>();
 
 	std::shared_ptr<Entity> entity = entity_manager_->create_entity();
 	std::shared_ptr<Entity> entity2 = entity_manager_->create_entity();
 	std::shared_ptr<Entity> entity3 = entity_manager_->create_entity();
-	std::shared_ptr<TransformComponent> component = transform_manager_->add_component(entity, 5, 6);
-	std::shared_ptr<TransformComponent> component1 = transform_manager_->add_component(entity2, 8, 8);
-	std::shared_ptr<TransformComponent> component2 = transform_manager_->add_component(entity, 5, 6);
-	std::shared_ptr<TransformComponent> component3 = transform_manager_->add_component(entity, 5, 6);
-	auto tr = transform_manager_->get_component(entity);
-	auto tr2 = transform_manager_->get_component(entity3);
+	std::shared_ptr<TransformComponent> component = entity->add_component<TransformComponent>(5, 6);
+
+	auto et = entity->get_component<TransformComponent>();
+
+	entity->remove_component<TransformComponent>();
+
+
 }

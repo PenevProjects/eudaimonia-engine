@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CORE_H
+#define _CORE_H
 #include <memory>
 #include <vector>
 #include <iostream>
@@ -10,19 +11,20 @@
 
 
 
-class EntityManager;
-
+class ComponentManager;
+class IBaseComponentTypeManager;
 template<typename T>
 class ComponentTypeManager;
+class EntityManager;
 
-class TransformComponent;
-struct ComponentBitMask;
+
+struct TransformComponent;
+
 
 class Core
 {
 	std::shared_ptr<EntityManager> entity_manager_;
-	std::shared_ptr<ComponentTypeManager<TransformComponent>> transform_manager_;
-
+	std::shared_ptr<ComponentManager> component_manager_;
 	friend class Entity;
 	friend class EntityManager;
 public:
@@ -38,3 +40,4 @@ public:
 
 };
 
+#endif
