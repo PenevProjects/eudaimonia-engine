@@ -35,8 +35,8 @@ public:
 		return std::make_shared<Core>();
 	}
 
-	void setup();
-
+	void start();
+	void loop();
 
 };
 

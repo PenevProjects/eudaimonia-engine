@@ -2,20 +2,37 @@
 #include "Entity.h"
 #include "Component.h"
 
-void Core::setup()
+
+void Core::start()
 {
-	component_manager_ = std::make_shared<ComponentManager>();
-	entity_manager_ = std::make_shared<EntityManager>(component_manager_);
-	auto transform_manager_ = component_manager_->create_ComponentTypeManager<TransformComponent>();
+	component_manager_ = ComponentManager::create_ComponentManager();
+	entity_manager_ = EntityManager::create_EntityManager(component_manager_);
+	component_manager_->declare_component_type<TransformComponent>();
 
-	std::shared_ptr<Entity> entity = entity_manager_->create_entity();
-	std::shared_ptr<Entity> entity2 = entity_manager_->create_entity();
-	std::shared_ptr<Entity> entity3 = entity_manager_->create_entity();
-	std::shared_ptr<TransformComponent> component = entity->add_component<TransformComponent>(5, 6);
-
-	auto et = entity->get_component<TransformComponent>();
-
-	entity->remove_component<TransformComponent>();
+	Entity* entity = entity_manager_->create_entity();
+	Entity* entity2 = entity_manager_->create_entity();
+	Entity* entity3 = entity_manager_->create_entity();
+	auto component = entity->add_component<TransformComponent>(5, 6);
+	entity3->copy_component<TransformComponent>(entity);
 
 
+	auto copied = entity3->get_component<TransformComponent>();
+	copied->a_ = 1212;
+
+	auto cc = entity->add_component<TransformComponent>(5, 1);
+
+	entity->destroy();
+
+	auto c2 = entity->add_component<TransformComponent>(5, 1);
+
+	entity_manager_->erase_dead_entities();
+}
+
+void Core::loop()
+{
+
+
+
+
+	entity_manager_->erase_dead_entities();
 }

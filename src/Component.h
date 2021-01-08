@@ -1,11 +1,20 @@
 #ifndef _COMPONENT_H
 #define _COMPONENT_H
 
-
-class IBaseComponent
+/** 
+ * Inherit from this class to create components.
+ *
+ * All user-defined component types *must* have default constructors.
+ * Initialization happens in "setup()".
+ *
+ * Purely abstract interface which implements the function "setup()" which is called when adding components to an entity.
+ */
+struct IBaseComponent
 {
-public:
+	// All derived component types *must* have default constructors
+	IBaseComponent() = default;
 	virtual ~IBaseComponent() = default;
+	// Use this for initialization of components 
 	virtual void setup() {}
 };
 
