@@ -11,33 +11,31 @@
 
 
 
-class ComponentManager;
 class IBaseComponentTypeManager;
-template<typename T>
+template<typename T_ComponentInstance>
 class ComponentTypeManager;
+
 class EntityManager;
+class ComponentManager;
+class SystemsManager;
 
-
-struct TransformComponent;
 
 
 class Core
 {
 	std::shared_ptr<EntityManager> entity_manager_;
 	std::shared_ptr<ComponentManager> component_manager_;
-	friend class Entity;
-	friend class EntityManager;
+	std::shared_ptr<SystemsManager> systems_manager_;
 public:
 	Core() = default;
 
-	static std::shared_ptr<Core> create_core()
+	static std::unique_ptr<Core> CreateCore()
 	{
-		return std::make_shared<Core>();
+		return std::make_unique<Core>();
 	}
 
 	void start();
 	void loop();
-
 };
 
 #endif

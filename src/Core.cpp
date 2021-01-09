@@ -1,31 +1,34 @@
 #include "Core.h"
 #include "Entity.h"
-#include "Component.h"
+#include "TransformComponent.h"
+#include "System.h"
 
 
 void Core::start()
 {
-	component_manager_ = ComponentManager::create_ComponentManager();
-	entity_manager_ = EntityManager::create_EntityManager(component_manager_);
-	component_manager_->declare_component_type<TransformComponent>();
+	component_manager_ = ComponentManager::createComponentManager();
+	entity_manager_ = EntityManager::createEntityManager(component_manager_);
+	component_manager_->createComponentType<TransformComponent>();
+	systems_manager_ = SystemsManager::createSystemsManager(entity_manager_, component_manager_);
 
-	Entity* entity = entity_manager_->create_entity();
-	Entity* entity2 = entity_manager_->create_entity();
-	Entity* entity3 = entity_manager_->create_entity();
-	auto component = entity->add_component<TransformComponent>(5, 6);
-	entity3->copy_component<TransformComponent>(entity);
+	Entity* entity = entity_manager_->createEntity();
+	Entity* entity2 = entity_manager_->createEntity();
+	Entity* entity3 = entity_manager_->createEntity();
+	entity3->addComponent<TransformComponent>(99, 99);
+	auto component = entity->addComponent<TransformComponent>(5, 6);
+	entity3->copyComponent<TransformComponent>(entity);
 
 
-	auto copied = entity3->get_component<TransformComponent>();
+	auto copied = entity3->getComponent<TransformComponent>();
 	copied->a_ = 1212;
 
-	auto cc = entity->add_component<TransformComponent>(5, 1);
+	auto cc = entity->addComponent<TransformComponent>(5, 1);
 
 	entity->destroy();
 
-	auto c2 = entity->add_component<TransformComponent>(5, 1);
+	auto c2 = entity->addComponent<TransformComponent>(5, 1);
 
-	entity_manager_->erase_dead_entities();
+	entity_manager_->deleteDeadEntities();
 }
 
 void Core::loop()
@@ -34,5 +37,5 @@ void Core::loop()
 
 
 
-	entity_manager_->erase_dead_entities();
+	systems_manager_->tickAll();
 }

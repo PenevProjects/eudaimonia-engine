@@ -1,9 +1,12 @@
 #ifndef _ENTITY_H
 #define _ENTITY_H
 
+/**
+ * Header-implemented because of heavy use of templates.
+ */
+
 #include <memory>
 #include <vector>
-#include <queue>
 #include <iostream>
 #include <exception>
 #include <string>
@@ -12,19 +15,18 @@
 #include <utility>
 #include <typeinfo>
 #include <typeindex>
+#include <algorithm>
 
-#include "Component.h"
 
+#include "NonCopyable.h"
 
 #define MAX_COMPONENT_TYPES 1024
 typedef std::bitset<MAX_COMPONENT_TYPES> ComponentMask;
 
 class EntityManager;
 
-template<typename T>
+template<typename T_ComponentInstance>
 class ComponentTypeManager;
-
-
 
 /**
  * A handle class for an entity id.
@@ -34,7 +36,7 @@ class ComponentTypeManager;
 class Entity
 {
 	friend class EntityManager;
-	template<typename T>
+	template<typename T_ComponentInstance>
 	friend class ComponentTypeManager;
 
 	// index of entity
@@ -48,8 +50,8 @@ class Entity
 	// if a bit is 1, a component of that type is attached to the entity.
 	ComponentMask component_mask_;
 public:
-	Entity(std::weak_ptr<EntityManager> em, unsigned id) : manager_(em), id_(id), alive_(true) {}
-
+	Entity() = default;
+	~Entity() = default;
 	//delete copy ctors to ensure no mismanagement happens.
 	Entity (const Entity&) = delete;
 	Entity operator=(const Entity&) = delete;
@@ -80,10 +82,14 @@ public:
 	 *		TransformComponent* component = entity->add_component<TransformComponent>(args);
 	 */
 	template<typename T_ComponentType, typename ... Args>
-	T_ComponentType* add_component(Args&& ... args)
+	T_ComponentType* addComponent(Args&& ... args)
 	{
-		if (!alive_) { std::cout << "Trying to add component to a dead entity. ID: " << id_ << std::endl; return nullptr; }
-		auto component_instance = manager_.lock()->add_component<T_ComponentType>(this);
+		if (!alive_) 
+		{ 
+			std::cout << "Trying to add component to a dead entity. ID: " << id_ << std::endl; 
+			return nullptr; 
+		}
+		auto component_instance = manager_.lock()->addComponent<T_ComponentType>(this);
 		//setup component if add_component is successful
 		if (component_instance)
 		{
@@ -94,6 +100,7 @@ public:
 
 	/**
 	 * Gets a component that is attached to an entity.
+	 * Very slow, O(n) speed, avoid using in the game loop.
 	 *
 	 * @return A pointer to the component instance.
 	 *
@@ -104,40 +111,87 @@ public:
 	 *		TransformComponent* component = entity->get_component<TransformComponent>();
 	 */
 	template<typename T_ComponentType>
-	T_ComponentType* get_component()
+	T_ComponentType* getComponent()
 	{
-		if (!alive_) { std::cout << "Trying to get component from a dead entity. ID: " << id_ << std::endl; return nullptr; }
-		return manager_.lock()->get_component<T_ComponentType>(this);
+		if (!alive_) 
+		{ 
+			std::cout << "Trying to get component from a dead entity. ID: " << id_ << std::endl; 
+			return nullptr; 
+		}
+		return manager_.lock()->getComponent<T_ComponentType>(this);
 	}
 
 	/**
 	 * Copies a component from a source entity into the caller.
+	 * Very slow, avoid using in the game loop.
 	 *
 	 * Usage:
 	 *		entity_receiver->get_component<TransformComponent>(entity_giver);
 	 */
 	template<typename T_ComponentType>
-	void copy_component(Entity* from)
+	void copyComponent(Entity* from)
 	{
-		if (!alive_) { std::cout << "Trying to copy component from a dead entity. ID: " << id_ << std::endl; return; }
-		manager_.lock()->copy_component<T_ComponentType>(this, from);
+		if (!alive_) 
+		{ 
+			std::cout << "Trying to copy component from a dead entity. ID: " << id_ << std::endl;
+			return; 
+		}
+		manager_.lock()->copyComponent<T_ComponentType>(this, from);
 	}
 	/**
 	 * Removes a component that is attached to an entity.
 	 *
+	 * Very slow, avoid using in the game loop.
 	 * Usage:
 	 *
 	 *		entity->remove_component<TransformComponent>();
 	 */
 	template<typename T_ComponentType>
-	void remove_component()
+	void removeComponent()
 	{
-		if (!alive_) { std::cout << "Trying to remove component from a dead entity. ID: " << id_ << std::endl; return; }
-		manager_.lock()->remove_component<T_ComponentType>(this);
+		if (!alive_) 
+		{ 
+			std::cout << "Trying to remove component from a dead entity. ID: " << id_ << std::endl;
+			return;
+		}
+		manager_.lock()->removeComponent<T_ComponentType>(this);
 	}
 
 };
 
+/**
+ * Inherit from this class when creating custom components.
+ *
+ * All user-defined component types *must* have default constructors.
+ * Initialization happens in the virtual function "setup()".
+ *
+ * Purely abstract interface which implements the function "setup()" which is called when adding components to an entity.
+ */
+class IBaseComponent
+{
+public:
+	Entity* entity_owner_;
+	// All derived component types *must* have default constructors
+	IBaseComponent() = default;
+	virtual ~IBaseComponent() = default;
+	// Use this for initialization of components 
+	virtual void setup() {}
+};
+
+
+// Interface for Component Type Managers.
+class IBaseComponentTypeManager {
+public:
+	IBaseComponentTypeManager() = default;
+	virtual ~IBaseComponentTypeManager() = default;
+	IBaseComponentTypeManager(const IBaseComponentTypeManager &) = default;
+	IBaseComponentTypeManager &operator=(const IBaseComponentTypeManager &) = default;
+	IBaseComponentTypeManager(IBaseComponentTypeManager &&) = default;
+	IBaseComponentTypeManager &operator=(IBaseComponentTypeManager &&) = default;
+
+	virtual void cleanEntity(Entity* _e) {}
+	virtual void copyComponentInternal(Entity* current_entity, Entity* source_entity) {}
+};
 
 
 /**
@@ -145,9 +199,9 @@ public:
  *
  * All Component types need to be declared before they can be added to entities. 
  */
-class ComponentManager
+class ComponentManager : public NonCopyable
 {
-	template<typename T>
+	template<typename T_ComponentInstance>
 	friend class ComponentTypeManager;
 	friend class EntityManager;
 
@@ -160,28 +214,28 @@ class ComponentManager
 	 */
 	std::map<std::type_index, std::unique_ptr<IBaseComponentTypeManager>> type_managers_;
 	//component bit mask - gets populated with component type indices
-	ComponentMask component_type_mask_;
+	ComponentMask component_bitmask_;
 	
 	// helper map for indexing type_managers_ when given a component type id
 	std::map<unsigned int, std::type_index> typeId_to_typename;
 
 public:
-	ComponentManager() : component_type_mask_(0){}
-	static std::shared_ptr<ComponentManager> create_ComponentManager()
+	ComponentManager() : component_bitmask_(0){}
+	static std::shared_ptr<ComponentManager> createComponentManager()
 	{
 		return std::make_shared<ComponentManager>();
 	}
 
-	IBaseComponentTypeManager* get_type_manager_from_id(unsigned int _id) const
+	IBaseComponentTypeManager* getTypeManager(unsigned int _id) const
 	{
 		auto tempId = typeId_to_typename.at(_id);
 		return (type_managers_.at(tempId)).get();
 	}
 
-	template<typename T>
-	ComponentTypeManager<T>* get_type_manager_from_typename() const
+	template<typename T_ComponentInstance>
+	ComponentTypeManager<T_ComponentInstance>* getTypeManager() const
 	{
-		ComponentTypeManager<T>* manager = dynamic_cast<ComponentTypeManager<T>*>(type_managers_.at(std::type_index(typeid(T))).get());
+		ComponentTypeManager<T_ComponentInstance>* manager = dynamic_cast<ComponentTypeManager<T_ComponentInstance>*>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))).get());
 		if (manager)
 		{
 			return manager;
@@ -198,15 +252,15 @@ public:
 	* Assigns an index for the components' bitmask.
 	*/
 	template<typename T_ComponentType>
-	void declare_component_type()
+	void createComponentType()
 	{
 		unsigned int id = MAX_COMPONENT_TYPES + 1;
 		//assign id to the componentFamily
-		for (size_t i = 0; i < component_type_mask_.size(); i++)
+		for (size_t i = 0; i < component_bitmask_.size(); i++)
 		{
-			if (!component_type_mask_.test(i))
+			if (!component_bitmask_.test(i))
 			{
-				component_type_mask_.set(i);
+				component_bitmask_.set(i);
 				id = i;
 				break;
 			}
@@ -216,7 +270,8 @@ public:
 			std::cout << "COMPONENTMANAGER::ERROR::maximum component types count reached, currently: " << MAX_COMPONENT_TYPES << std::endl;
 		}
 
-		auto created = std::make_unique<ComponentTypeManager<T_ComponentType>>(id);
+		auto created = std::make_unique<ComponentTypeManager<T_ComponentType>>();
+		created->component_type_id_ = id;
 		type_managers_.emplace(std::type_index(typeid(T_ComponentType)), std::move(created));
 
 		typeId_to_typename.emplace(id, std::type_index(typeid(T_ComponentType)));
@@ -224,43 +279,25 @@ public:
 };
 
 
-
-
-// Interface for Component Type Managers.
-class IBaseComponentTypeManager {
-public:
-	IBaseComponentTypeManager() = default;
-	virtual ~IBaseComponentTypeManager() = default;
-	IBaseComponentTypeManager(const IBaseComponentTypeManager &) = default;
-	IBaseComponentTypeManager &operator=(const IBaseComponentTypeManager &) = default;
-	IBaseComponentTypeManager(IBaseComponentTypeManager &&) = default;
-	IBaseComponentTypeManager &operator=(IBaseComponentTypeManager &&) = default;
-
-	virtual void clean_entity(Entity* _e) {}
-	virtual void copy_component_internal(Entity* current_entity, Entity* source_entity) {}
-};
-
-template<typename T_ComponentObject>
+template<typename T_ComponentInstance>
 class ComponentTypeManager 
-	: public IBaseComponentTypeManager 
+	: public IBaseComponentTypeManager
 {
 	friend class ComponentManager;
 	friend class Entity;
 	friend class EntityManager;
-
-
 	/** 
 	 * Component instances container.
 	 * Uses Entity pointers(don't need ownership, so can use raw pointers) as a key which identifies each instance based on its entity owner.
 	 *
 	 **/
-	std::map<Entity*, T_ComponentObject> component_instances_;
+	std::vector<T_ComponentInstance> component_instances_;
 
 	unsigned int component_type_id_;
 
-	void clean_entity(Entity* _entity)
+	void cleanEntity(Entity* _entity)
 	{
-		remove_component_internal(_entity);
+		removeComponentInternal(_entity);
 	}
 
 	/** Internal private functions for adding, getting, removing component of this type.
@@ -268,12 +305,12 @@ class ComponentTypeManager
 	 * The user can only operate on components from entity objects.
 	 */
 	template<typename ... Args>
-	T_ComponentObject* add_component_internal(Entity* entity)
+	T_ComponentInstance* addComponentInternal(Entity* entity)
 	{
 		//if the component exists in the entity
 		if (entity->component_mask_.test(component_type_id_))
 		{
-			std::cout << "ADD_COMPONENT::ERROR::There is already a component of " << typeid(T_ComponentObject).name() << " attached to entity with id " << entity->id() << std::endl;
+			std::cout << "ADD_COMPONENT::ERROR::There is already a component of " << typeid(T_ComponentInstance).name() << " attached to entity with id " << entity->id() << std::endl;
 			return nullptr;
 		}
 		else //add it
@@ -282,22 +319,26 @@ class ComponentTypeManager
 		}
 
 		//update components vector
-		//construct the pair directly in the map using emplace
-		component_instances_.emplace(entity, T_ComponentObject{});
 
-		T_ComponentObject* componentPtr = &component_instances_.at(entity);
+		T_ComponentInstance obj{};
+		obj.entity_owner_ = entity;
+		component_instances_.emplace_back(std::move(obj));
 
-
-		return componentPtr;
+		return getComponentInternal(entity);
 	}
 
-
-	T_ComponentObject* get_component_internal(Entity* entity)
+	//Quite slow, avoid using too much.
+	T_ComponentInstance* getComponentInternal(Entity* entity)
 	{
 		//if the entity has the component
 		if (entity->component_mask_.test(component_type_id_))
 		{
-			return &component_instances_.at(entity);
+			auto instance_itr = findComponentInstance(entity);
+			if (instance_itr == component_instances_.end())
+			{
+				return nullptr;
+			}
+			return &(*instance_itr);
 		}
 		else
 		{
@@ -307,36 +348,35 @@ class ComponentTypeManager
 
 	}
 
-	void copy_component_internal(Entity* current_entity, Entity* source_entity)
+	void copyComponentInternal(Entity* current_entity, Entity* source_entity)
 	{
 		//if source entity doesn't have the component
 		if (!source_entity->component_mask_.test(component_type_id_))
 		{
 			std::cout << "COPY_COMPONENT::ERROR::There's no such component attached to the source entity with id " << source_entity->id();
+			return;
 		}
+		//find component instance attached to entity
+		auto source_instance_itr = findComponentInstance(source_entity);
 
-		T_ComponentObject copy{ component_instances_.at(source_entity) };
+		T_ComponentInstance tempObj{ *source_instance_itr };
+		tempObj.entity_owner_ = current_entity;
 
-		// if current entity doesn't have the component
-		if (!current_entity->component_mask_.test(component_type_id_))
+		// if current entity has the component
+		if (current_entity->component_mask_.test(component_type_id_))
 		{
-			current_entity->component_mask_.set(component_type_id_);
+			removeComponentInternal(current_entity);
 		}
-		else
-		{
-			component_instances_.erase(current_entity);
-		}
-		//construct the pair directly in the map using emplace
-		component_instances_.emplace(current_entity, std::move(copy));
-
-		T_ComponentObject* componentPtr = &component_instances_.at(current_entity);
+		current_entity->component_mask_.set(component_type_id_);
+		component_instances_.emplace_back(std::move(tempObj));
 	}
 
-	void remove_component_internal(Entity* entity)
+	void removeComponentInternal(Entity* entity)
 	{
 		if (entity->component_mask_.test(component_type_id_))
 		{
-			component_instances_.erase(entity);
+			auto instance_itr = findComponentInstance(entity);
+			component_instances_.erase(instance_itr);
 			entity->component_mask_.reset(component_type_id_);
 		}
 		else
@@ -345,51 +385,57 @@ class ComponentTypeManager
 		}
 	}
 
+	//returns an iterator using std::find_if and reports if it doesn't exist.
+	auto findComponentInstance(Entity* _entity)
+	{
+		auto instance_itr = std::find_if(component_instances_.begin(),
+			component_instances_.end(),
+			[=](const T_ComponentInstance& instance)
+		{
+			return instance.entity_owner_ == _entity;
+		});
+
+		if (instance_itr == component_instances_.end())
+		{
+			std::cout << "FIND_COMPONENT_INSTANCE::ERROR::Couldn't find given component instance. Check parameters. The return value of this function is invalid." << std::endl;
+		}
+		return instance_itr;
+		
+	}
 
 public:
-	ComponentTypeManager( unsigned int id)
-		:	component_type_id_(id)
-	{}
+	ComponentTypeManager() = default;
 };
 
-
-
-
-
-
-
-
-
 class EntityManager
-	: public std::enable_shared_from_this<EntityManager>
+	: public std::enable_shared_from_this<EntityManager>,
+	public NonCopyable
 {
 	friend class Entity;
 	friend class ComponentManager;
-
-	template<typename T>
+	template<typename T_ComponentInstance>
 	friend class ComponentTypeManager;
-
+	std::shared_ptr<ComponentManager> component_manager_;
 	//entities vector
 	std::map<unsigned int, std::unique_ptr<Entity>> entities_;
-
-	std::shared_ptr<ComponentManager> component_manager_;
 	//maximum entity count is capacity of unsigned int
 	//free_id_ gets iterated every time an entity gets created
 	unsigned int free_id_;
-	//queue for reusable ids
+	//vector for reusable ids
 	//after an entity gets destroyed, its id can be reused
 	std::vector<unsigned int> reusable_ids_;
-
+	// vector for entities to be destroyed,
+	// fast access and contiguous memory
 	std::vector<unsigned int> entities_to_be_destroyed;
 
 public:
-	EntityManager(std::shared_ptr<ComponentManager> cm)
-		: free_id_(0),
-		component_manager_(cm)
-	{}
-	static std::shared_ptr<EntityManager> create_EntityManager(std::shared_ptr<ComponentManager> cm)
+	EntityManager() = default;
+	static std::shared_ptr<EntityManager> createEntityManager(std::shared_ptr<ComponentManager> cm)
 	{
-		return std::make_shared<EntityManager>(cm);
+		auto obj = std::make_shared<EntityManager>();
+		obj->component_manager_ = cm;
+		obj->free_id_ = 0;
+		return obj;
 	}
 
 	/**	 
@@ -397,7 +443,7 @@ public:
 	 * @return A pointer to an entity object, which is owned by the EntityManager.
 	 *
 	 */
-	Entity* create_entity()
+	Entity* createEntity()
 	{
 		unsigned int id;
 		if (free_id_ == 0xffffffffUL)
@@ -418,7 +464,10 @@ public:
 			free_id_++;
 		}
 
-		auto newEntity = std::make_unique<Entity>(weak_from_this(), id);
+		auto newEntity = std::make_unique<Entity>();
+		newEntity->manager_ = weak_from_this();
+		newEntity->id_ = id;
+		newEntity->alive_ = true;
 		entities_.emplace(id, std::move(newEntity));
 		return entities_.at(id).get();
 	}
@@ -427,7 +476,7 @@ public:
 	*
 	* Avoid using as it needs to do a bounds check(quite slow).
 	*/
-	Entity* get_entity(unsigned int id)
+	Entity* getEntity(unsigned int id)
 	{
 		Entity* entityPtr;
 		try 
@@ -442,29 +491,29 @@ public:
 		return entityPtr;
 	}
 
-	Entity* copy_entity(Entity* _source)
+	Entity* copyEntity(Entity* _source)
 	{
-		auto new_entity = create_entity();
+		auto new_entity = createEntity();
 		for (unsigned int i = 0; i < _source->component_mask_.size(); i++)
 		{
 			// if component exists
 			if (_source->component_mask_.test(i))
 			{
-				auto type_manager = component_manager_->get_type_manager_from_id(i);
-				type_manager->copy_component_internal(new_entity, _source);
+				auto type_manager = component_manager_->getTypeManager(i);
+				type_manager->copyComponentInternal(new_entity, _source);
 			}
 		}
 		return new_entity;
 	}
 
-	void destroy_entity(Entity* _entity)
+	void destroyEntity(Entity* _entity)
 	{
 		_entity->alive_ = false;
 		entities_to_be_destroyed.push_back(_entity->id_);
 	}
 
 	//function to be called at the end of game loop.
-	void erase_dead_entities()
+	void deleteDeadEntities()
 	{
 		for (auto dead_entity_id : entities_to_be_destroyed)
 		{
@@ -473,11 +522,11 @@ public:
 			{
 				if (entities_.at(dead_entity_id)->component_mask_.test(i))
 				{
-					auto type_manager = component_manager_->get_type_manager_from_id(i);
+					auto type_manager = component_manager_->getTypeManager(i);
 
 					if (type_manager)
 					{
-						type_manager->clean_entity(entities_.at(dead_entity_id).get());
+						type_manager->cleanEntity(entities_.at(dead_entity_id).get());
 					}
 				}
 			}
@@ -491,52 +540,52 @@ public:
 	inline unsigned int entities_count() const { return entities_.size(); }
 
 private:
-	template<typename T>
-	T* add_component(Entity* entity)
+	template<typename T_ComponentInstance>
+	T_ComponentInstance* addComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->get_type_manager_from_typename<T>();
+		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
 		//check if type_manager exists
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
 			return nullptr;
 		}
-		return type_manager->add_component_internal(entity);
+		return type_manager->addComponentInternal(entity);
 	}
 
-	template<typename T>
-	T* get_component(Entity* entity)
+	template<typename T_ComponentInstance>
+	T_ComponentInstance* getComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->get_type_manager_from_typename<T>();
+		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
 		//check if type_manager exists
 
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
 			return nullptr;
 		}
-		return type_manager->get_component_internal(entity);
+		return type_manager->getComponentInternal(entity);
 	}
 
-	template<typename T>
-	void copy_component(Entity* current, Entity* source)
+	template<typename T_ComponentInstance>
+	void copyComponent(Entity* current, Entity* source)
 	{
-		auto type_manager = component_manager_->get_type_manager_from_typename<T>();
+		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
 			return;
 		}
-		type_manager->copy_component_internal(current, source);
+		type_manager->copyComponentInternal(current, source);
 	}
 
-	template<typename T>
-	void remove_component(Entity* entity)
+	template<typename T_ComponentInstance>
+	void removeComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->get_type_manager_from_typename<T>();
+		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
 			return;
 		}
 		type_manager->remove_component_internal(entity);
@@ -547,8 +596,16 @@ private:
 
 inline void Entity::destroy()
 {
-	manager_.lock()->destroy_entity(this);
+	manager_.lock()->destroyEntity(this);
 }
+
+
+
+
+
+
+
+
 
 
 
