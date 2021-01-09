@@ -2,6 +2,7 @@
 #include "Transform.h"
 #include "zero/Entity.h"
 
+//TODO Copy component and general "DoForAllInstances" function
 
 glm::mat4 MovementSystem::getModelMatrix(Transform* transform) const
 {
@@ -19,12 +20,18 @@ glm::mat4 MovementSystem::getModelMatrix(Transform* transform) const
 void MovementSystem::tick()
 {
 	//TODO THIS IS UGLY
-	auto transformManager = manager_.lock()->component_manager()->getTypeManager<Transform>();
-	auto instances = *transformManager->instances();
-	for (auto& instanceItr = instances.begin(); instanceItr != instances.end(); instanceItr++)
+	//"DoForAllInstances"
+	auto transform_manager = system_manager()->component_manager()->getTypeManager<Transform>();
+	auto instances_ptr = transform_manager->instances_ptr();
+	//for (auto& instanceItr = instances->begin(); instanceItr != instances->end(); instanceItr++)
+	//{
+	//	auto transform4e = std::dynamic_pointer_cast<Transform>(*instanceItr);
+	//	transform4e->model = getModelMatrix(transform4e.get());
+	//}
+	for (auto& instance : *instances_ptr)
 	{
-		auto transform4e = std::dynamic_pointer_cast<Transform>(*instanceItr);
-		transform4e->model = getModelMatrix(transform4e.get());
+		auto transform = std::dynamic_pointer_cast<Transform>(instance);
+		transform->model = getModelMatrix(transform.get());
 	}
 }
 void MovementSystem::update()

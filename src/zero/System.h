@@ -21,6 +21,7 @@ class SystemsManager;
 class IBaseSystem 
 {
 	friend class SystemsManager;
+	std::weak_ptr<SystemsManager> system_manager_;
 public:
 	IBaseSystem() = default;
 	virtual ~IBaseSystem() = default;
@@ -36,7 +37,10 @@ public:
 	// called whenever invoked
 	virtual void update() {}
 
-	std::weak_ptr<SystemsManager> manager_;
+	std::shared_ptr<SystemsManager> system_manager()
+	{
+		return system_manager_.lock();
+	}
 };
 
 
@@ -52,26 +56,26 @@ class SystemsManager :
 	 * key is the system type index
 	 * unique_ptrs because we need definitive ownership in this vector.
 	 */
-	std::map<std::type_index, std::unique_ptr<IBaseSystem>> systems_;
-	std::shared_ptr<EntityManager> entity_manager_;
-	std::shared_ptr<ComponentManager> component_manager_;
+	std::map<std::type_index, std::shared_ptr<IBaseSystem>> systems_;
+	std::weak_ptr<EntityManager> entity_manager_;
+	std::weak_ptr<ComponentManager> component_manager_;
 
 public:
 	SystemsManager() = default;
 
 
-	inline ComponentManager* component_manager()
+	inline std::shared_ptr<ComponentManager> component_manager()
 	{
-		return component_manager_.get();
+		return component_manager_.lock();
 	}
-	inline EntityManager* entity_manager()
+	inline std::shared_ptr<EntityManager> entity_manager()
 	{
-		return entity_manager_.get();
+		return entity_manager_.lock();
 	}
 	template<typename T_System>
-	T_System* getSystem() const
+	std::shared_ptr<T_System> getSystem() const
 	{
-		T_System* system = dynamic_cast<T_System*>(systems_.at(std::type_index(typeid(T_System))).get());
+		std::shared_ptr<T_System> system = std::dynamic_pointer_cast<T_System>(systems_.at(std::type_index(typeid(T_System))));
 		if (system)
 		{
 			return system;
@@ -88,10 +92,10 @@ public:
 	* Creates the System.
 	*/
 	template<typename T_System, typename ... Args>
-	T_System* addSystem(Args&& ... args)
+	std::shared_ptr<T_System> addSystem(Args&& ... args)
 	{
-		auto created = std::make_unique<T_System>();
-		created->manager_ = weak_from_this();
+		std::shared_ptr<T_System> created = std::make_shared<T_System>();
+		created->system_manager_ = weak_from_this();
 		if (created)
 		{
 			created->setup(std::forward<Args>(args)...);

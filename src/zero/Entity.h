@@ -49,7 +49,7 @@ class Entity
 	bool alive_;
 
 	// Pointer to manager which handles add, get and remove component functions.
-	std::weak_ptr<EntityManager> manager_;
+	std::weak_ptr<EntityManager> entity_manager_;
 	// bitset with each bit corresponding to a component type.
 	// if a bit is 1, a component of that type is attached to the entity.
 	ComponentMask component_mask_;
@@ -86,14 +86,14 @@ public:
 	 *		TransformComponent* component = entity->add_component<TransformComponent>(args);
 	 */
 	template<typename T_ComponentType, typename ... Args>
-	T_ComponentType* addComponent(Args&& ... args)
+	std::shared_ptr<T_ComponentType> addComponent(Args&& ... args)
 	{
 		if (!alive_) 
 		{ 
 			std::cout << "Trying to add component to a dead entity. ID: " << id_ << std::endl; 
 			return nullptr; 
 		}
-		auto component_instance = manager_.lock()->addComponent<T_ComponentType>(this);
+		auto component_instance = entity_manager_.lock()->addComponent<T_ComponentType>(this);
 		//setup component if add_component is successful
 		if (component_instance)
 		{
@@ -115,14 +115,14 @@ public:
 	 *		TransformComponent* component = entity->get_component<TransformComponent>();
 	 */
 	template<typename T_ComponentType>
-	T_ComponentType* getComponent()
+	std::shared_ptr<T_ComponentType> getComponent()
 	{
 		if (!alive_) 
 		{ 
 			std::cout << "Trying to get component from a dead entity. ID: " << id_ << std::endl; 
 			return nullptr; 
 		}
-		return manager_.lock()->getComponent<T_ComponentType>(this);
+		return entity_manager_.lock()->getComponent<T_ComponentType>(this);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public:
 			std::cout << "Trying to copy component from a dead entity. ID: " << id_ << std::endl;
 			return; 
 		}
-		manager_.lock()->copyComponent<T_ComponentType>(this, from);
+		entity_manager_.lock()->copyComponent<T_ComponentType>(this, from);
 	}
 	/**
 	 * Removes a component that is attached to an entity.
@@ -158,7 +158,7 @@ public:
 			std::cout << "Trying to remove component from a dead entity. ID: " << id_ << std::endl;
 			return;
 		}
-		manager_.lock()->removeComponent<T_ComponentType>(this);
+		entity_manager_.lock()->removeComponent<T_ComponentType>(this);
 	}
 
 };
@@ -169,7 +169,7 @@ public:
 // Interface for Component Type Managers.
 class IBaseComponentTypeManager {
 protected:
-	std::vector<std::shared_ptr<IBaseComponent>>* ptr_to_instances_;
+	std::weak_ptr<std::vector<std::shared_ptr<IBaseComponent>>> weak_to_instances_;
 public:
 	IBaseComponentTypeManager() = default;
 	virtual ~IBaseComponentTypeManager() = default;
@@ -181,9 +181,9 @@ public:
 	virtual void cleanEntity(Entity* _e) {}
 	virtual void copyComponentInternal(Entity* current_entity, Entity* source_entity) {}
 
-	std::vector<std::shared_ptr<IBaseComponent>>* instances()
+	std::shared_ptr<std::vector<std::shared_ptr<IBaseComponent>>> instances_ptr()
 	{
-		return ptr_to_instances_;
+		return weak_to_instances_.lock();
 	}
 };
 
@@ -207,7 +207,7 @@ class ComponentManager : public NonCopyable
 	 * key is the component type index
 	 * unique_ptrs because we need definitive ownership in this vector.
 	 */
-	std::map<std::type_index, std::unique_ptr<IBaseComponentTypeManager>> type_managers_;
+	std::map<std::type_index, std::shared_ptr<IBaseComponentTypeManager>> type_managers_;
 	//component bit mask - gets populated with component type indices
 	ComponentMask component_bitmask_;
 	
@@ -222,16 +222,16 @@ class ComponentManager : public NonCopyable
 public:
 	ComponentManager() : component_bitmask_(0){}
 
-	IBaseComponentTypeManager* getTypeManager(unsigned int _id) const
+	std::shared_ptr<IBaseComponentTypeManager> getTypeManager(unsigned int _id) const
 	{
 		auto tempId = typeId_to_typename.at(_id);
-		return (type_managers_.at(tempId)).get();
+		return type_managers_.at(tempId);
 	}
 
 	template<typename T_ComponentInstance>
-	ComponentTypeManager<T_ComponentInstance>* getTypeManager() const
+	std::shared_ptr<ComponentTypeManager<T_ComponentInstance>> getTypeManager() const
 	{
-		ComponentTypeManager<T_ComponentInstance>* manager = static_cast<ComponentTypeManager<T_ComponentInstance>*>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))).get());
+		auto manager = std::dynamic_pointer_cast<ComponentTypeManager<T_ComponentInstance>>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))));
 		if (manager)
 		{
 			return manager;
@@ -266,9 +266,10 @@ public:
 			std::cout << "COMPONENTMANAGER::ERROR::maximum component types count reached, currently: " << MAX_COMPONENT_TYPES << std::endl;
 		}
 
-		auto created = std::make_unique<ComponentTypeManager<T_ComponentType>>();
+		auto created = std::make_shared<ComponentTypeManager<T_ComponentType>>();
 		created->component_type_id_ = id;
-		created->ptr_to_instances_ = &created->instances_;
+		created->instances_ = std::make_shared<std::vector<std::shared_ptr<IBaseComponent>>>();
+		created->weak_to_instances_ = created->instances_;
 
 		type_managers_.emplace(std::type_index(typeid(T_ComponentType)), std::move(created));
 
@@ -281,29 +282,23 @@ template<typename T_ComponentInstance>
 class ComponentTypeManager 
 	: public IBaseComponentTypeManager
 {
+private:
 	friend class ComponentManager;
 	friend class Entity;
 	friend class EntityManager;
 	/** 
 	 * Component instances container.
-	 * Uses Entity pointers(don't need ownership, so can use raw pointers) as a key which identifies each instance based on its entity owner.
-	 *
 	 **/
-	std::vector<std::shared_ptr<IBaseComponent>> instances_;
+	std::shared_ptr<std::vector<std::shared_ptr<IBaseComponent>>> instances_;
 
 	unsigned int component_type_id_;
-
-	void cleanEntity(Entity* _entity)
-	{
-		removeComponentInternal(_entity);
-	}
 
 	/** Internal private functions for adding, getting, removing component of this type.
 	 *
 	 * The user can only operate on components from entity objects.
 	 */
 	template<typename ... Args>
-	T_ComponentInstance* addComponentInternal(Entity* entity)
+	std::shared_ptr<T_ComponentInstance> addComponentInternal(Entity* entity)
 	{
 		//if the component exists in the entity
 		if (entity->component_mask_.test(component_type_id_))
@@ -318,22 +313,22 @@ class ComponentTypeManager
 		//update components vector
 		auto obj = std::make_shared<T_ComponentInstance>();
 		obj->entity_owner_ = entity;
-		instances_.emplace_back(std::move(obj));
+		instances_->emplace_back(std::move(obj));
 		return getComponentInternal(entity);
 	}
 
 	//Quite slow, avoid using too much.
-	T_ComponentInstance* getComponentInternal(Entity* entity)
+	std::shared_ptr<T_ComponentInstance> getComponentInternal(Entity* entity)
 	{
 		//if the entity has the component
 		if (entity->component_mask_.test(component_type_id_))
 		{
 			auto instance_itr = findComponentInstance(entity);
-			if (instance_itr == instances_.end())
+			if (instance_itr == instances_->end())
 			{
 				return nullptr;
 			}
-			return dynamic_cast<T_ComponentInstance*>((*instance_itr).get());
+			return std::dynamic_pointer_cast<T_ComponentInstance>((*instance_itr));
 		}
 		else
 		{
@@ -363,7 +358,7 @@ class ComponentTypeManager
 			removeComponentInternal(current_entity);
 		}
 		current_entity->component_mask_.set(component_type_id_);
-		instances_.emplace_back(std::move(tempObj));
+		instances_->emplace_back(std::move(tempObj));
 	}
 
 	void removeComponentInternal(Entity* entity)
@@ -371,7 +366,7 @@ class ComponentTypeManager
 		if (entity->component_mask_.test(component_type_id_))
 		{
 			auto instance_itr = findComponentInstance(entity);
-			instances_.erase(instance_itr);
+			instances_->erase(instance_itr);
 			entity->component_mask_.reset(component_type_id_);
 		}
 		else
@@ -383,14 +378,14 @@ class ComponentTypeManager
 	//returns an iterator using std::find_if and reports if it doesn't exist.
 	auto findComponentInstance(Entity* _entity)
 	{
-		auto instance_itr = std::find_if(instances_.begin(),
-			instances_.end(),
+		auto instance_itr = std::find_if(instances_->begin(),
+			instances_->end(),
 			[&](const std::shared_ptr<IBaseComponent>& instance)
 		{
 			return instance->entity_owner_ == _entity;
 		});
 
-		if (instance_itr == instances_.end())
+		if (instance_itr == instances_->end())
 		{
 			std::cout << "FIND_COMPONENT_INSTANCE::ERROR::Couldn't find given component instance. Check parameters. The return value of this function is invalid." << std::endl;
 		}
@@ -398,8 +393,10 @@ class ComponentTypeManager
 		
 	}
 
-public:
-	ComponentTypeManager() = default;
+	void cleanEntity(Entity* _entity)
+	{
+		removeComponentInternal(_entity);
+	}
 };
 
 class EntityManager
@@ -411,7 +408,7 @@ class EntityManager
 	friend class ComponentManager;
 	template<typename T_ComponentInstance>
 	friend class ComponentTypeManager;
-	std::shared_ptr<ComponentManager> component_manager_;
+	std::weak_ptr<ComponentManager> component_manager_;
 	//entities vector
 	std::map<unsigned int, std::unique_ptr<Entity>> entities_;
 	//maximum entity count is capacity of unsigned int
@@ -455,7 +452,7 @@ public:
 		}
 
 		auto newEntity = std::make_unique<Entity>();
-		newEntity->manager_ = weak_from_this();
+		newEntity->entity_manager_ = weak_from_this();
 		newEntity->id_ = id;
 		newEntity->alive_ = true;
 		entities_.emplace(id, std::move(newEntity));
@@ -489,7 +486,7 @@ public:
 			// if component exists
 			if (_source->component_mask_.test(i))
 			{
-				auto type_manager = component_manager_->getTypeManager(i);
+				auto type_manager = component_manager_.lock()->getTypeManager(i);
 				type_manager->copyComponentInternal(new_entity, _source);
 			}
 		}
@@ -503,6 +500,7 @@ public:
 	}
 
 	//function to be called at the end of game loop.
+	//cleans entity vector of dead entities
 	void deleteDeadEntities()
 	{
 		for (auto dead_entity_id : entities_to_be_destroyed)
@@ -512,7 +510,7 @@ public:
 			{
 				if (entities_.at(dead_entity_id)->component_mask_.test(i))
 				{
-					auto type_manager = component_manager_->getTypeManager(i);
+					auto type_manager = component_manager_.lock()->getTypeManager(i);
 
 					if (type_manager)
 					{
@@ -543,9 +541,9 @@ private:
 	}
 
 	template<typename T_ComponentInstance>
-	T_ComponentInstance* addComponent(Entity* entity)
+	std::shared_ptr<T_ComponentInstance> addComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
+		auto type_manager = component_manager_.lock()->getTypeManager<T_ComponentInstance>();
 		//check if type_manager exists
 		if (!type_manager)
 		{
@@ -556,9 +554,9 @@ private:
 	}
 
 	template<typename T_ComponentInstance>
-	T_ComponentInstance* getComponent(Entity* entity)
+	std::shared_ptr<T_ComponentInstance> getComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
+		auto type_manager = component_manager_.lock()->getTypeManager<T_ComponentInstance>();
 		//check if type_manager exists
 
 		if (!type_manager)
@@ -572,7 +570,7 @@ private:
 	template<typename T_ComponentInstance>
 	void copyComponent(Entity* current, Entity* source)
 	{
-		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
+		auto type_manager = component_manager_.lock()->getTypeManager<T_ComponentInstance>();
 		if (!type_manager)
 		{
 			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
@@ -584,7 +582,7 @@ private:
 	template<typename T_ComponentInstance>
 	void removeComponent(Entity* entity)
 	{
-		auto type_manager = component_manager_->getTypeManager<T_ComponentInstance>();
+		auto type_manager = component_manager_.lock()->getTypeManager<T_ComponentInstance>();
 		if (!type_manager)
 		{
 			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
@@ -598,7 +596,7 @@ private:
 
 inline void Entity::destroy()
 {
-	manager_.lock()->destroyEntity(this);
+	entity_manager_.lock()->destroyEntity(this);
 }
 }//namespace zero
 #endif
