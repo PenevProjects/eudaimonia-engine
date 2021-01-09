@@ -168,6 +168,8 @@ public:
 
 // Interface for Component Type Managers.
 class IBaseComponentTypeManager {
+protected:
+	std::vector<std::shared_ptr<IBaseComponent>>* ptr_to_instances_;
 public:
 	IBaseComponentTypeManager() = default;
 	virtual ~IBaseComponentTypeManager() = default;
@@ -178,6 +180,11 @@ public:
 
 	virtual void cleanEntity(Entity* _e) {}
 	virtual void copyComponentInternal(Entity* current_entity, Entity* source_entity) {}
+
+	std::vector<std::shared_ptr<IBaseComponent>>* instances()
+	{
+		return ptr_to_instances_;
+	}
 };
 
 
@@ -261,6 +268,8 @@ public:
 
 		auto created = std::make_unique<ComponentTypeManager<T_ComponentType>>();
 		created->component_type_id_ = id;
+		created->ptr_to_instances_ = &created->instances_;
+
 		type_managers_.emplace(std::type_index(typeid(T_ComponentType)), std::move(created));
 
 		typeId_to_typename.emplace(id, std::type_index(typeid(T_ComponentType)));
@@ -280,7 +289,7 @@ class ComponentTypeManager
 	 * Uses Entity pointers(don't need ownership, so can use raw pointers) as a key which identifies each instance based on its entity owner.
 	 *
 	 **/
-	std::vector<T_ComponentInstance> component_instances_;
+	std::vector<std::shared_ptr<IBaseComponent>> instances_;
 
 	unsigned int component_type_id_;
 
@@ -307,9 +316,9 @@ class ComponentTypeManager
 			entity->component_mask_.set(component_type_id_);
 		}
 		//update components vector
-		T_ComponentInstance obj{};
-		obj.entity_owner_ = entity;
-		component_instances_.emplace_back(std::move(obj));
+		auto obj = std::make_shared<T_ComponentInstance>();
+		obj->entity_owner_ = entity;
+		instances_.emplace_back(std::move(obj));
 		return getComponentInternal(entity);
 	}
 
@@ -320,11 +329,11 @@ class ComponentTypeManager
 		if (entity->component_mask_.test(component_type_id_))
 		{
 			auto instance_itr = findComponentInstance(entity);
-			if (instance_itr == component_instances_.end())
+			if (instance_itr == instances_.end())
 			{
 				return nullptr;
 			}
-			return &(*instance_itr);
+			return dynamic_cast<T_ComponentInstance*>((*instance_itr).get());
 		}
 		else
 		{
@@ -344,16 +353,17 @@ class ComponentTypeManager
 		}
 		//find component instance attached to entity
 		auto source_instance_itr = findComponentInstance(source_entity);
-
-		T_ComponentInstance tempObj{ *source_instance_itr };
-		tempObj.entity_owner_ = current_entity;
+		//TODO:
+		//TODO
+		auto tempObj = std::make_shared<T_ComponentInstance>();
+		tempObj->entity_owner_ = current_entity;
 		// if current entity has the component
 		if (current_entity->component_mask_.test(component_type_id_))
 		{
 			removeComponentInternal(current_entity);
 		}
 		current_entity->component_mask_.set(component_type_id_);
-		component_instances_.emplace_back(std::move(tempObj));
+		instances_.emplace_back(std::move(tempObj));
 	}
 
 	void removeComponentInternal(Entity* entity)
@@ -361,7 +371,7 @@ class ComponentTypeManager
 		if (entity->component_mask_.test(component_type_id_))
 		{
 			auto instance_itr = findComponentInstance(entity);
-			component_instances_.erase(instance_itr);
+			instances_.erase(instance_itr);
 			entity->component_mask_.reset(component_type_id_);
 		}
 		else
@@ -373,14 +383,14 @@ class ComponentTypeManager
 	//returns an iterator using std::find_if and reports if it doesn't exist.
 	auto findComponentInstance(Entity* _entity)
 	{
-		auto instance_itr = std::find_if(component_instances_.begin(),
-			component_instances_.end(),
-			[=](const T_ComponentInstance& instance)
+		auto instance_itr = std::find_if(instances_.begin(),
+			instances_.end(),
+			[&](const std::shared_ptr<IBaseComponent>& instance)
 		{
-			return instance.entity_owner_ == _entity;
+			return instance->entity_owner_ == _entity;
 		});
 
-		if (instance_itr == component_instances_.end())
+		if (instance_itr == instances_.end())
 		{
 			std::cout << "FIND_COMPONENT_INSTANCE::ERROR::Couldn't find given component instance. Check parameters. The return value of this function is invalid." << std::endl;
 		}

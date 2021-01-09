@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <iostream>
 #include <exception>
 #include <vector>
@@ -100,11 +101,16 @@ int main(int argc, char *argv[])
 	cm->createComponentType<Transform>();
 	zero::Entity* one = em->createEntity();
 	Transform* one_transform = one->addComponent<Transform>();
+	one_transform->orientation = glm::vec3(0.0f, 51.0f, 0.0f);
 
 	//tv->m_modelMatrix = glm::scale(tv->m_modelMatrix, glm::vec3(0.3f));
 	//tv->m_modelMatrix = glm::rotate(tv->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	//tv->m_modelMatrix = glm::translate(tv->m_modelMatrix, glm::vec3(-40.0f, 0.0f, -10.0f));
-
+	movement_s->tick();
+	std::cout << glm::to_string(one_transform->model);
+	one_transform->position = glm::vec3(999.9f, 20.0f, 777.0f);
+	movement_s->tick();
+	std::cout << glm::to_string(one_transform->model);
 
 
 

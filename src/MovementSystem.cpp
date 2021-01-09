@@ -18,7 +18,14 @@ glm::mat4 MovementSystem::getModelMatrix(Transform* transform) const
 
 void MovementSystem::tick()
 {
-	auto transforms = manager_.lock()->component_manager()->getTypeManager<Transform>();
+	//TODO THIS IS UGLY
+	auto transformManager = manager_.lock()->component_manager()->getTypeManager<Transform>();
+	auto instances = *transformManager->instances();
+	for (auto& instanceItr = instances.begin(); instanceItr != instances.end(); instanceItr++)
+	{
+		auto transform4e = std::dynamic_pointer_cast<Transform>(*instanceItr);
+		transform4e->model = getModelMatrix(transform4e.get());
+	}
 }
 void MovementSystem::update()
 {
