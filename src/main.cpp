@@ -19,21 +19,22 @@
 #include "Framebuffer.h"
 #include "Skybox.h"
 
-#include "Core.h"
-#include "Entity.h"
-#include "Component.h"
+#include "zero/Core.h"
+#include "zero/Entity.h"
+#include "zero/Component.h"
+#include "zero/System.h"
 #include "Transform.h"
-
+#include "MovementSystem.h"
 
 
 int main(int argc, char *argv[])
 {
 	//initial menu
-	int skyboxChoice = 0;
-	while (!(skyboxChoice == 1 || skyboxChoice == 2 || skyboxChoice == 3))
-	{
-		std::cout << "select skybox: [1 | 2 | 3]: ";
-	}
+	int skyboxChoice = 1;
+	//while (!(skyboxChoice == 1 || skyboxChoice == 2 || skyboxChoice == 3))
+	//{
+	//	std::cout << "select skybox: [1 | 2 | 3]: ";
+	//}
 	bool renderCar = false;
 	char carSelection;
 	std::cout << "render car model?: [y | n]: ";
@@ -45,7 +46,6 @@ int main(int argc, char *argv[])
 
 
 
-	auto manager = chrono::EntityManager::create();
 
 
 
@@ -88,6 +88,28 @@ int main(int argc, char *argv[])
 	//ensure multisampling is nicest quality
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+
+
+	std::unique_ptr<zero::Core> core = zero::Core::createCore();
+	auto em = core->entity_manager();
+	auto cm = core->component_manager();
+	auto sm = core->systems_manager();
+
+	MovementSystem* movement_s = sm->addSystem<MovementSystem>();
+	cm->createComponentType<Transform>();
+	zero::Entity* one = em->createEntity();
+	Transform* one_transform = one->addComponent<Transform>();
+
+	//tv->m_modelMatrix = glm::scale(tv->m_modelMatrix, glm::vec3(0.3f));
+	//tv->m_modelMatrix = glm::rotate(tv->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//tv->m_modelMatrix = glm::translate(tv->m_modelMatrix, glm::vec3(-40.0f, 0.0f, -10.0f));
+
+
+
+
+
+
 
 
 

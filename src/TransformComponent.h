@@ -2,12 +2,14 @@
 #define _TRANSFORM_COMPONENT_H
 
 
-#include "Entity.h"
+#include "Component.h"
 
+namespace zero
+{
 
 struct TransformComponent : public IBaseComponent
 {
-	int x_;
+	int a_;
 	int b_;
 	void setup(int a, int b) {
 		a_ = a;
@@ -15,5 +17,6 @@ struct TransformComponent : public IBaseComponent
 	}
 
 };
+}//namespace zero
 
 #endif

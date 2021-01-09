@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ZERO_SYSTEM_H
+#define ZERO_SYSTEM_H
 #include <memory>
 #include <vector>
 #include <iostream>
@@ -7,13 +8,19 @@
 #include <map>
 #include <bitset>
 #include <typeindex>
-#include "NonCopyable.h"
 
-class ComponentManager;
-class EntityManager;
+#include "Entity.h"
+#include "help/NonCopyable.h"
+
+
+namespace zero
+{
+class SystemsManager;
 
 // Interface for Systems.
-class IBaseSystem {
+class IBaseSystem 
+{
+	friend class SystemsManager;
 public:
 	IBaseSystem() = default;
 	virtual ~IBaseSystem() = default;
@@ -38,6 +45,8 @@ class SystemsManager :
 	public NonCopyable,
 	public std::enable_shared_from_this<SystemsManager>
 {
+	friend class Core;
+	friend class IBaseSystem;
 	/**
 	 * map with systems of various types. map is nice because we aren't going to be modifying the container.
 	 * key is the system type index
@@ -46,16 +55,19 @@ class SystemsManager :
 	std::map<std::type_index, std::unique_ptr<IBaseSystem>> systems_;
 	std::shared_ptr<EntityManager> entity_manager_;
 	std::shared_ptr<ComponentManager> component_manager_;
+
 public:
 	SystemsManager() = default;
-	static std::shared_ptr<SystemsManager> createSystemsManager(std::shared_ptr<EntityManager> _em, std::shared_ptr<ComponentManager> _cm)
-	{
-		std::shared_ptr<SystemsManager> obj = std::make_shared<SystemsManager>();
-		obj->entity_manager_ = _em;
-		obj->component_manager_ = _cm;
-		return obj;
-	}
 
+
+	inline ComponentManager* component_manager()
+	{
+		return component_manager_.get();
+	}
+	inline EntityManager* entity_manager()
+	{
+		return entity_manager_.get();
+	}
 	template<typename T_System>
 	T_System* getSystem() const
 	{
@@ -91,17 +103,26 @@ public:
 
 		systems_.emplace(std::type_index(typeid(T_System)), std::move(created));
 
-		return systems_.at(std::type_index(typeid(T_System))).get();
+		return getSystem<T_System>();
 	}
 
 	void tickAll()
 	{
-		entity_manager_->deleteDeadEntities();
 		for (auto& system : systems_)
 		{
 			system.second->tick();
 		}
 	}
+
+private:
+	inline static std::shared_ptr<SystemsManager> createSystemsManager(std::shared_ptr<EntityManager> _em, std::shared_ptr<ComponentManager> _cm)
+	{
+		std::shared_ptr<SystemsManager> obj = std::make_shared<SystemsManager>();
+		obj->entity_manager_ = _em;
+		obj->component_manager_ = _cm;
+		return obj;
+	}
 };
 
-
+}//namespace zero
+#endif

@@ -1,5 +1,9 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 project(eudaimonia)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
   add_definitions(/MP)
@@ -20,6 +24,16 @@ link_directories(
 add_definitions(-DSDL_MAIN_HANDLED)
 
 add_executable(eudaimonia
+	src/zero/Core.h
+	src/zero/Entity.h
+	src/zero/Component.h
+	src/zero/System.h
+	src/zero/help/NonCopyable.h
+
+	src/MovementSystem.h
+	src/MovementSystem.cpp
+
+
 	src/main.cpp
 	src/Camera.h
 	src/Camera.cpp
@@ -37,16 +51,9 @@ add_executable(eudaimonia
 	src/FrameBuffer.cpp
 	src/Skybox.h
 	src/Skybox.cpp
-	src/Exception.h
-	src/Exception.cpp
-	src/Core.h
-	src/Core.cpp
-	src/Entity.h
-	src/Entity.cpp
-	src/Component.h
-	src/Component.cpp
 	src/Transform.h
 	src/Transform.cpp
+
 )
 
 target_link_libraries(eudaimonia

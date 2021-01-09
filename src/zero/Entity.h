@@ -1,5 +1,5 @@
-#ifndef _ENTITY_H
-#define _ENTITY_H
+#ifndef ZERO_ENTITY_H
+#define ZERO_ENTITY_H
 
 /**
  * Header-implemented because of heavy use of templates.
@@ -18,13 +18,17 @@
 #include <algorithm>
 
 
-#include "NonCopyable.h"
+#include "help/NonCopyable.h"
+#include "Component.h"
 
+
+namespace zero
+{
 #define MAX_COMPONENT_TYPES 1024
 typedef std::bitset<MAX_COMPONENT_TYPES> ComponentMask;
 
 class EntityManager;
-
+class Core;
 template<typename T_ComponentInstance>
 class ComponentTypeManager;
 
@@ -159,24 +163,7 @@ public:
 
 };
 
-/**
- * Inherit from this class when creating custom components.
- *
- * All user-defined component types *must* have default constructors.
- * Initialization happens in the virtual function "setup()".
- *
- * Purely abstract interface which implements the function "setup()" which is called when adding components to an entity.
- */
-class IBaseComponent
-{
-public:
-	Entity* entity_owner_;
-	// All derived component types *must* have default constructors
-	IBaseComponent() = default;
-	virtual ~IBaseComponent() = default;
-	// Use this for initialization of components 
-	virtual void setup() {}
-};
+
 
 
 // Interface for Component Type Managers.
@@ -204,6 +191,7 @@ class ComponentManager : public NonCopyable
 	template<typename T_ComponentInstance>
 	friend class ComponentTypeManager;
 	friend class EntityManager;
+	friend class Core;
 
 
 
@@ -219,12 +207,13 @@ class ComponentManager : public NonCopyable
 	// helper map for indexing type_managers_ when given a component type id
 	std::map<unsigned int, std::type_index> typeId_to_typename;
 
-public:
-	ComponentManager() : component_bitmask_(0){}
+	//conceal because we want only the core to be able to create the component manager
 	static std::shared_ptr<ComponentManager> createComponentManager()
 	{
 		return std::make_shared<ComponentManager>();
 	}
+public:
+	ComponentManager() : component_bitmask_(0){}
 
 	IBaseComponentTypeManager* getTypeManager(unsigned int _id) const
 	{
@@ -235,7 +224,7 @@ public:
 	template<typename T_ComponentInstance>
 	ComponentTypeManager<T_ComponentInstance>* getTypeManager() const
 	{
-		ComponentTypeManager<T_ComponentInstance>* manager = dynamic_cast<ComponentTypeManager<T_ComponentInstance>*>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))).get());
+		ComponentTypeManager<T_ComponentInstance>* manager = static_cast<ComponentTypeManager<T_ComponentInstance>*>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))).get());
 		if (manager)
 		{
 			return manager;
@@ -317,13 +306,10 @@ class ComponentTypeManager
 		{
 			entity->component_mask_.set(component_type_id_);
 		}
-
 		//update components vector
-
 		T_ComponentInstance obj{};
 		obj.entity_owner_ = entity;
 		component_instances_.emplace_back(std::move(obj));
-
 		return getComponentInternal(entity);
 	}
 
@@ -361,7 +347,6 @@ class ComponentTypeManager
 
 		T_ComponentInstance tempObj{ *source_instance_itr };
 		tempObj.entity_owner_ = current_entity;
-
 		// if current entity has the component
 		if (current_entity->component_mask_.test(component_type_id_))
 		{
@@ -411,6 +396,7 @@ class EntityManager
 	: public std::enable_shared_from_this<EntityManager>,
 	public NonCopyable
 {
+	friend class Core;
 	friend class Entity;
 	friend class ComponentManager;
 	template<typename T_ComponentInstance>
@@ -430,13 +416,7 @@ class EntityManager
 
 public:
 	EntityManager() = default;
-	static std::shared_ptr<EntityManager> createEntityManager(std::shared_ptr<ComponentManager> cm)
-	{
-		auto obj = std::make_shared<EntityManager>();
-		obj->component_manager_ = cm;
-		obj->free_id_ = 0;
-		return obj;
-	}
+
 
 	/**	 
 	 * Creates a new Entity.
@@ -538,8 +518,20 @@ public:
 	}
 
 	inline unsigned int entities_count() const { return entities_.size(); }
+	inline void tick()
+	{
+		deleteDeadEntities();
+	}
 
 private:
+	static std::shared_ptr<EntityManager> createEntityManager(std::shared_ptr<ComponentManager> cm)
+	{
+		auto obj = std::make_shared<EntityManager>();
+		obj->component_manager_ = cm;
+		obj->free_id_ = 0;
+		return obj;
+	}
+
 	template<typename T_ComponentInstance>
 	T_ComponentInstance* addComponent(Entity* entity)
 	{
@@ -598,15 +590,5 @@ inline void Entity::destroy()
 {
 	manager_.lock()->destroyEntity(this);
 }
-
-
-
-
-
-
-
-
-
-
-
+}//namespace zero
 #endif

@@ -1,32 +1,21 @@
-#pragma once
+#ifndef _TRANSFORM_COMPONENT_H
+#define _TRANSFORM_COMPONENT_H
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include "Component.h"
 #include <memory>
 
+#include "zero/Component.h"
 
-namespace chrono 
+
+struct Transform : public zero::IBaseComponent
 {
-
-class Transform {
-public:
-	void OnInitialize();
-	glm::mat4 GetModelMatrix() const;
-
-	void setPosition(glm::vec3 _newPosition);
-	void setOrientation(glm::vec3 _newOrientation);
-	void setScale(glm::vec3 _newScale);
-
-	void Translate(glm::vec3 _Position);
-	//void Rotate(glm::vec3 _eulerAngles);
-	//void Scale(glm::vec3 _Scale);
-
-private:
+	void setup(glm::vec3 _position = glm::vec3(1.0f), glm::vec3 _orientation = glm::vec3(0.0f), glm::vec3 scale = glm::vec3(1.0f));
 	glm::vec3 position;
 	glm::vec3 orientation;
 	glm::vec3 facing;
 	glm::vec3 scale;
+	glm::mat4 model;
 };
 
-} //namespace chrono
+#endif
