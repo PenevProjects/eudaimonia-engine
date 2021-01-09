@@ -100,8 +100,7 @@ int main(int argc, char *argv[])
 	auto movement_s = sm->addSystem<MovementSystem>();
 	cm->createComponentType<Transform>();
 	zero::Entity* one = em->createEntity();
-	auto one_transform = one->addComponent<Transform>();
-	one_transform->orientation = glm::vec3(0.0f, 0.0f, 0.0f);
+	auto one_transform = one->addComponent<Transform>(glm::vec3(66.0f, 66.0f, 66.0f));
 
 	zero::Entity* two = em->createEntity();
 	auto two_transform = two->addComponent<Transform>(glm::vec3(87.0f, 89.0f, 82.0f));
@@ -109,6 +108,8 @@ int main(int argc, char *argv[])
 	//tv->m_modelMatrix = glm::rotate(tv->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	//tv->m_modelMatrix = glm::translate(tv->m_modelMatrix, glm::vec3(-40.0f, 0.0f, -10.0f));
 	movement_s->tick();
+
+	two->copyComponent<Transform>(one);
 	std::cout << std::endl << glm::to_string(one_transform->model) << std::endl;;
 	one_transform->position = glm::vec3(999.9f, 20.0f, 777.0f);
 	

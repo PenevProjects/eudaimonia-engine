@@ -19,16 +19,8 @@ glm::mat4 MovementSystem::getModelMatrix(Transform* transform) const
 
 void MovementSystem::tick()
 {
-	//TODO THIS IS UGLY
-	//"DoForAllInstances"
 	auto transform_manager = system_manager()->component_manager()->getTypeManager<Transform>();
-	auto instances_ptr = transform_manager->instances_ptr();
-	//for (auto& instanceItr = instances->begin(); instanceItr != instances->end(); instanceItr++)
-	//{
-	//	auto transform4e = std::dynamic_pointer_cast<Transform>(*instanceItr);
-	//	transform4e->model = getModelMatrix(transform4e.get());
-	//}
-	for (auto& instance : *instances_ptr)
+	for (auto& instance : *transform_manager->instances_ptr())
 	{
 		auto transform = std::dynamic_pointer_cast<Transform>(instance);
 		transform->model = getModelMatrix(transform.get());

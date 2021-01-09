@@ -16,6 +16,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include <algorithm>
+#include <functional>
 
 
 #include "help/NonCopyable.h"
@@ -169,7 +170,10 @@ public:
 // Interface for Component Type Managers.
 class IBaseComponentTypeManager {
 protected:
+	friend class EntityManager;
 	std::weak_ptr<std::vector<std::shared_ptr<IBaseComponent>>> weak_to_instances_;
+	virtual void cleanEntity(Entity* _e) {}
+	virtual void copyComponentInternal(Entity* current_entity, Entity* source_entity) {}
 public:
 	IBaseComponentTypeManager() = default;
 	virtual ~IBaseComponentTypeManager() = default;
@@ -178,13 +182,27 @@ public:
 	IBaseComponentTypeManager(IBaseComponentTypeManager &&) = default;
 	IBaseComponentTypeManager &operator=(IBaseComponentTypeManager &&) = default;
 
-	virtual void cleanEntity(Entity* _e) {}
-	virtual void copyComponentInternal(Entity* current_entity, Entity* source_entity) {}
 
+
+	/**
+	 * Dereference this pointer to get the container of instances.
+	 *
+	 * To access a component instance of the derived class, 
+	 * you need to dynamically cast the IBaseComponent to the type of the manager.
+	 * Example:
+	 *
+	 *       for (auto& instance : *instances_ptr()) {
+	 *         T componentInstance = std::dynamic_pointer_cast<T>(instance); //now is derived type
+	 *         //do stuff...
+	 *       }
+	 *
+	 */
 	std::shared_ptr<std::vector<std::shared_ptr<IBaseComponent>>> instances_ptr()
 	{
 		return weak_to_instances_.lock();
 	}
+
+	virtual void doForAllInstances(std::function<void()> func_todo) {}
 };
 
 
@@ -350,15 +368,17 @@ private:
 		auto source_instance_itr = findComponentInstance(source_entity);
 		//TODO:
 		//TODO
-		auto tempObj = std::make_shared<T_ComponentInstance>();
-		tempObj->entity_owner_ = current_entity;
+		std::shared_ptr<T_ComponentInstance> source_component = std::dynamic_pointer_cast<T_ComponentInstance>(*source_instance_itr);
+		T_ComponentInstance new_instance { *source_component };
+		auto temp_instance_ptr = std::make_shared<T_ComponentInstance>(new_instance);
+		temp_instance_ptr->entity_owner_ = current_entity;
 		// if current entity has the component
 		if (current_entity->component_mask_.test(component_type_id_))
 		{
 			removeComponentInternal(current_entity);
 		}
 		current_entity->component_mask_.set(component_type_id_);
-		instances_->emplace_back(std::move(tempObj));
+		instances_->emplace_back(std::move(temp_instance_ptr));
 	}
 
 	void removeComponentInternal(Entity* entity)
