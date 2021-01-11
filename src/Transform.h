@@ -21,7 +21,7 @@ struct Transform : public zero::IBaseComponent
 	glm::vec3 right() const { return this->right_; }
 	glm::vec3 up() const { return this->up_; }
 private:
-	friend class MovementSystem;
+	friend class TransformSystem;
 	//gets calculated when movement system calls update() on this
 	glm::mat4 model_matrix_;
 	//gets calculated when movement system calls update() on this

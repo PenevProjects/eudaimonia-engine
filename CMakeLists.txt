@@ -30,8 +30,25 @@ add_executable(eudaimonia
 	src/zero/System.h
 	src/zero/help/NonCopyable.h
 
-	src/MovementSystem.h
-	src/MovementSystem.cpp
+
+	src/Transform.h
+	src/Transform.cpp
+
+	src/TransformSystem.h
+	src/TransformSystem.cpp
+
+	src/RenderingSystem.h
+	src/RenderingSystem.cpp
+
+	src/InputSystem.h
+	src/InputSystem.cpp
+
+	src/Mesh.h
+	src/Mesh.cpp
+	src/Model.h
+	src/Model.cpp
+
+
 
 
 	src/main.cpp
@@ -43,16 +60,12 @@ add_executable(eudaimonia
 	src/Texture.cpp
 	src/Time.h
 	src/Time.cpp
-	src/Mesh.h
-	src/Mesh.cpp
-	src/Model.h
-	src/Model.cpp
+
 	src/FrameBuffer.h
 	src/FrameBuffer.cpp
 	src/Skybox.h
 	src/Skybox.cpp
-	src/Transform.h
-	src/Transform.cpp
+
 
 )
 

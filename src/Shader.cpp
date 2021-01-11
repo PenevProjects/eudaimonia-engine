@@ -103,11 +103,11 @@ void Shader::StopUsing()
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-void Shader::setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D)
-{
-	setMat4("u_View", _cam.generateViewMatrix());
-	if (perspective3D)
-		setMat4("u_Projection", _cam.generateProjMatrixPersp());
-	else
-		setMat4("u_Projection", _cam.generateProjMatrixOrtho());
-}
+//void Shader::setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D)
+//{
+//	setMat4("u_View", _cam.generateViewMatrix());
+//	if (perspective3D)
+//		setMat4("u_Projection", _cam.generateProjMatrixPersp());
+//	else
+//		setMat4("u_Projection", _cam.generateProjMatrixOrtho());
+//}

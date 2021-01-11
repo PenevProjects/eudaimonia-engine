@@ -249,16 +249,19 @@ public:
 	template<typename T_ComponentInstance>
 	std::shared_ptr<ComponentTypeManager<T_ComponentInstance>> getTypeManager() const
 	{
-		auto manager = std::dynamic_pointer_cast<ComponentTypeManager<T_ComponentInstance>>(type_managers_.at(std::type_index(typeid(T_ComponentInstance))));
-		if (manager)
+		std::shared_ptr<ComponentTypeManager<T_ComponentInstance>> manager;
+		try
 		{
-			return manager;
+			auto instance = type_managers_.at(std::type_index(typeid(T_ComponentInstance)));
+			manager = std::dynamic_pointer_cast<ComponentTypeManager<T_ComponentInstance>>(instance);
 		}
-		else
+		catch (const std::out_of_range& e)
 		{
 			std::cout << "GET_TYPE_MANAGER_FROM_TYPENAME::ERROR::Can't get ComponentTypeManager from typename." << std::endl;
+			std::cerr << e.what() << std::endl;
 			return nullptr;
 		}
+		return manager;
 	}
 
 	/** All user-defined component types *must* be declared by calling this function.

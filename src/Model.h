@@ -17,7 +17,7 @@
 #include "zero/Component.h"
 
 class Shader;
-class Transform;
+struct Transform;
 
 class Model : public zero::IBaseComponent
 {
@@ -26,7 +26,6 @@ public:
 	glm::mat4 m_modelMatrix;
 	Model(const char *_path);
 	void RenderMeshes(const Shader &_shader, const Transform* transform);
-	std::vector<std::shared_ptr<Texture>> GetLoadedTextures() { return m_texturesLoaded; }
 private:
 	std::vector<std::shared_ptr<Mesh>> m_meshes;
 	std::vector<std::shared_ptr<Texture>> m_texturesLoaded;

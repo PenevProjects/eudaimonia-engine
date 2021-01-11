@@ -31,7 +31,7 @@ public:
 	*@param _cam Camera whose viewMatrix is to be used.
 	*@param pesepective3D [true | false] sets perspective projection if true, and orthographic projection if false.
 	*/
-	void setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D);
+	//void setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D);
 
 
 	/******************

@@ -117,8 +117,8 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 	for (unsigned int mip = 0; mip < maxMipLevels; mip++)
 	{
 		// reisze framebuffer according to mip-level size.
-		unsigned int mipWidth = reflectionSize * std::pow(0.5, mip);
-		unsigned int mipHeight = reflectionSize * std::pow(0.5, mip);
+		unsigned int mipWidth = unsigned int(reflectionSize * std::pow(0.5, mip));
+		unsigned int mipHeight = unsigned int(reflectionSize * std::pow(0.5, mip));
 		glBindRenderbuffer(GL_RENDERBUFFER, environmentFramebuffer->GetRenderBufferObject());
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
 		glViewport(0, 0, mipWidth, mipHeight);
