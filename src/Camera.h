@@ -7,6 +7,8 @@
 #include <SDL2/SDL.h>
 #include <memory>
 
+#include "zero/Component.h"
+
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
@@ -19,7 +21,7 @@
 * Stores values for position and orientation of camera.
 * Speed and sensitivity of camera are also configurable as public properties(unnecessary to write getters and setters - safe variables).
 */
-class Camera
+class Camera : public zero::IBaseComponent
 {
 private:
 	float m_Yaw;

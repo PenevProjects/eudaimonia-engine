@@ -110,14 +110,18 @@ int main(int argc, char *argv[])
 	movement_s->tick();
 
 	two->copyComponent<Transform>(one);
-	std::cout << std::endl << glm::to_string(one_transform->model) << std::endl;;
-	one_transform->position = glm::vec3(999.9f, 20.0f, 777.0f);
+	std::cout << std::endl << glm::to_string(one_transform->model_matrix()) << std::endl;;
+	one_transform->position = glm::vec3(0.0f, 0.0f, 0.0f);
+	one_transform->scale = glm::vec3(0.3f);
 	
-	movement_s->tick();
-	std::cout << glm::to_string(one_transform->model) << std::endl;
-	std::cout << glm::to_string(two_transform->model) << std::endl;
-	
+	movement_s->update(one_transform);
 
+	one_transform->position += 15.0f * one_transform->forward();
+
+	movement_s->update(one_transform);
+
+	std::cout << glm::to_string(one_transform->position);
+	std::cout << glm::to_string(one_transform->forward());
 
 
 
@@ -163,14 +167,13 @@ int main(int argc, char *argv[])
 
 	//tv pbr
 	std::shared_ptr<Model> tv = std::make_shared<Model>("../assets/tv/tv.fbx");
-	tv->m_modelMatrix = glm::scale(tv->m_modelMatrix, glm::vec3(0.3f));	
-	tv->m_modelMatrix = glm::rotate(tv->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	tv->m_modelMatrix = glm::translate(tv->m_modelMatrix, glm::vec3(-40.0f, 0.0f, -10.0f));
+	tv->m_modelMatrix = one_transform->model_matrix();
 
 	//mask pbr
 	std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
 	oniMask->m_modelMatrix = glm::scale(oniMask->m_modelMatrix, glm::vec3(1.0f));
 	oniMask->m_modelMatrix = glm::translate(oniMask->m_modelMatrix, glm::vec3(15.0f, -5.0f, 0.0f));
+	oniMask->m_modelMatrix = one_transform->model_matrix();
 
 	//sword pbr
 	std::shared_ptr<Model> sword = std::make_shared<Model>("../assets/sword/sword.fbx");
@@ -322,9 +325,9 @@ int main(int argc, char *argv[])
 			car->RenderMeshes(*pbrShader);
 		}
 
-		tv->RenderMeshes(*pbrShader);
+		//tv->RenderMeshes(*pbrShader);
 		oniMask->RenderMeshes(*pbrShader);
-		sword->RenderMeshes(*pbrShader);
+		//sword->RenderMeshes(*pbrShader);
 
 		pbrShader->StopUsing();
 

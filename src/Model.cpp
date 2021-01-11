@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "Shader.h"
+#include "Transform.h"
 #include <iostream>
 
 
@@ -9,9 +10,9 @@ Model::Model(const char *_path) :
 	ImportModel(_path);
 }
 
-void Model::RenderMeshes(const Shader &_shader)
+void Model::RenderMeshes(const Shader &_shader, const Transform* transform)
 {
-	_shader.setMat4("u_Model", this->m_modelMatrix);
+	_shader.setMat4("u_Model", transform->model_matrix());
 	for (auto& mesh : m_meshes)
 	{
 		mesh->Render(_shader);

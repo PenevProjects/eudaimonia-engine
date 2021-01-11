@@ -13,8 +13,8 @@ class MovementSystem : public zero::IBaseSystem
 {
 public:
 	void tick();
-	void update();
-	glm::mat4 getModelMatrix(Transform* transform) const;
+	void update(std::shared_ptr<Transform> transform);
+	glm::mat4 buildModelMatrix(std::shared_ptr<Transform> transform);
 
 	//void Rotate(glm::vec3 _eulerAngles);
 	//void Scale(glm::vec3 _Scale);

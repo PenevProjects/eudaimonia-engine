@@ -126,7 +126,7 @@ glm::mat4 Camera::generateViewMatrix() const
 
 glm::mat4 Camera::generateProjMatrixPersp() const
 {
-	return glm::perspective(glm::radians(m_FOV), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 100.0f);
+	return glm::perspective(glm::radians(m_FOV), (float)m_ScreenWidth / (float)m_ScreenHeight, 0.1f, 1000.0f);
 }
 glm::mat4 Camera::generateProjMatrixOrtho() const
 {

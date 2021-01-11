@@ -14,21 +14,21 @@
 #include "Mesh.h"
 #include "Texture.h"
 
+#include "zero/Component.h"
+
 class Shader;
+class Transform;
 
-
-class Model
+class Model : public zero::IBaseComponent
 {
 	friend class Texture;
 public:
 	glm::mat4 m_modelMatrix;
 	Model(const char *_path);
-	void RenderMeshes(const Shader &_shader);
+	void RenderMeshes(const Shader &_shader, const Transform* transform);
 	std::vector<std::shared_ptr<Texture>> GetLoadedTextures() { return m_texturesLoaded; }
 private:
-	// model data, using shared ptrs to avoid copy ctor
 	std::vector<std::shared_ptr<Mesh>> m_meshes;
-	//using shared ptrs to avoid copy ctor
 	std::vector<std::shared_ptr<Texture>> m_texturesLoaded;
 	std::string m_directory;
 
