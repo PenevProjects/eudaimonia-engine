@@ -127,11 +127,10 @@ int main(int argc, char *argv[])
 		pbrShader->setVec3("u_lightColors[" + std::to_string(i) + "]", lightColors[i]);
 	}
 	pbrShader->stopUsing();
+
 	//SKYBOX////////////////////////////////////////////////
 	skyboxShader->use();
 	skyboxShader->setInt("u_environmentCubemap", skyboxSamplerID);
-	skyboxShader->setMat4("u_View", view_mat);
-	skyboxShader->setMat4("u_Projection", proj_mat);
 	skyboxShader->stopUsing();
 
 	geShader->use();
@@ -161,6 +160,7 @@ int main(int argc, char *argv[])
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, ppFramebuf->GetFrameBufferObject());
 		}
+		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

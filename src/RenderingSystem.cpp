@@ -58,7 +58,6 @@ void RenderingSystem::setup()
 		std::cout << "glewInit failed!" << std::endl;
 		return;
 	}
-	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL); // for skybox rendering
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); //// for lower mip levels in the pre-filter map.
 
