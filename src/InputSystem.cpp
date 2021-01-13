@@ -22,7 +22,6 @@ void Mouse::controller(std::shared_ptr<Transform> transform, float sensitivity)
 {
 	transform->rotation_euler.y += -delta_x_ * sensitivity * (float)Time::GetDeltaTime();
 	transform->rotation_euler.x -= delta_y_ * sensitivity * (float)Time::GetDeltaTime();
-	std::cout << transform->rotation_euler.x << std::endl;
 	if (transform->rotation_euler.x > glm::radians(89.0f))
 	{
 		transform->rotation_euler.x = glm::radians(89.0f);

@@ -11,26 +11,21 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "Mesh.h"
-#include "Texture.h"
-
-#include "zero/Component.h"
+#include "Resource.h"
 
 class Shader;
 struct Transform;
+class Mesh;
+class Texture;
 
-class Model : public zero::IBaseComponent
+class Model : public IResource
 {
 	friend class Texture;
 public:
-	glm::mat4 m_modelMatrix;
 	Model(std::string _path);
-	void RenderMeshes(const Shader &_shader, const Transform* transform);
-private:
 	std::vector<std::shared_ptr<Mesh>> m_meshes;
 	std::vector<std::shared_ptr<Texture>> m_texturesLoaded;
-	std::string m_directory;
-
+private:
 	void ImportModel(std::string _path);
 	void ProcessNode(aiNode* _node, const aiScene* _scene);
 	std::vector<std::shared_ptr<Texture>> LoadMaterialTextures(const aiScene* _scene, aiMaterial* _mat);

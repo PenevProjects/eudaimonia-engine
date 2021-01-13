@@ -33,6 +33,9 @@ public:
 	float delta_y() { return this->delta_y_; }
 	int x() { return this->x_; }
 	int y() { return this->y_; }
+	/**
+	 * Transforms the passed transform according to mouse motion.
+	 */
 	void controller(std::shared_ptr<Transform> transform, float sensitivity);
 
 };

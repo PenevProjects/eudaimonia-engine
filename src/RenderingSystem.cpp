@@ -73,11 +73,11 @@ void RenderingSystem::tick()
 }
 
 
-glm::mat4 RenderingSystem::viewMatrix(Transform* transform)
+glm::mat4 RenderingSystem::viewMatrix(const Transform& transform)
 {
 	return glm::lookAt(transform->position, {transform->position + transform->forward()}, transform->up());
 }
-glm::mat4 RenderingSystem::perspectiveProjection(Camera* camera)
+glm::mat4 RenderingSystem::perspectiveProjection(const Camera& camera)
 {
 	return glm::perspective(glm::radians(camera->fov_), (float)screen_width_ / (float)screen_height_, 0.1f, 1000.0f);
 }

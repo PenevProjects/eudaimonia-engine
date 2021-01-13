@@ -25,9 +25,12 @@
 #include "zero/Component.h"
 #include "zero/System.h"
 #include "Transform.h"
+#include "Resource.h"
 #include "TransformSystem.h"
 #include "RenderingSystem.h"
 #include "InputSystem.h"
+#include "ResourceSystem.h"
+#include "ModelRenderer.h"
 
 
 int main(int argc, char *argv[])
@@ -56,18 +59,17 @@ int main(int argc, char *argv[])
 	auto movement_s = sm->addSystem<TransformSystem>();
 	auto rendering_s = sm->addSystem<RenderingSystem>();
 	auto input_s = sm->addSystem<InputSystem>();
+	auto resource_s = sm->addSystem<ResourceSystem>();
 
 	cm->createComponentType<Transform>();
 	cm->createComponentType<Camera>();
+	cm->createComponentType<ModelRenderer>();
 
 	zero::Entity* one = em->createEntity();
 	auto one_transform = one->addComponent<Transform>(glm::vec3(66.0f, 66.0f, 66.0f));
 
 	zero::Entity* two = em->createEntity();
 	auto two_transform = two->addComponent<Transform>(glm::vec3(87.0f, 89.0f, 82.0f));
-	//tv->m_modelMatrix = glm::scale(tv->m_modelMatrix, glm::vec3(0.3f));
-	//tv->m_modelMatrix = glm::rotate(tv->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//tv->m_modelMatrix = glm::translate(tv->m_modelMatrix, glm::vec3(-40.0f, 0.0f, -10.0f));
 
 	two->copyComponent<Transform>(one);
 	std::cout << std::endl << glm::to_string(one_transform->model_matrix()) << std::endl;;
@@ -102,45 +104,30 @@ int main(int argc, char *argv[])
 
 	//skybox - this also constructs maps for irradiance, prefilter and brdfLUT
 	std::shared_ptr<Skybox> skybox;
-	if (skyboxChoice == 1)
-	{
-		skybox = std::make_shared<Skybox>("../assets/hdr/night4k.hdr", 2048);
-	}
-	else if (skyboxChoice == 2)
-	{
-		skybox = std::make_shared<Skybox>("../assets/hdr/Road_to_MonumentValley_Ref.hdr", 2048);
-	}
-	else
-	{
-		skybox = std::make_shared<Skybox>("../assets/hdr/Factory_Catwalk_2k.hdr", 2048);
-	}
-	//OTHER SKYBOXES
-	//std::shared_ptr<Skybox> skybox = std::make_shared<Skybox>("../assets/hdr/Road_to_MonumentValley_Ref.hdr", 2048);
-	//std::shared_ptr<Skybox> skybox = std::make_shared<Skybox>("../assets/hdr/Factory_Catwalk_2k.hdr", 2048);
+	skybox = std::make_shared<Skybox>("../assets/hdr/Road_to_MonumentValley_Ref.hdr", 2048);
 
 
 	//car - DONT FORGET DRAW CALL in main game loop.
-	std::shared_ptr<Model> car;
-	if (renderCar)
-	{
-		car = std::make_shared<Model>("../assets/car/car.fbx");
-		car->m_modelMatrix = glm::translate(car->m_modelMatrix, glm::vec3(0.0f, -10.0f, 0.0f));
-	}
+	//std::shared_ptr<Model> car;
 
-	//tv pbr
-	std::shared_ptr<Model> tv = std::make_shared<Model>("../assets/tv/tv.fbx");
-	tv->m_modelMatrix = one_transform->model_matrix();
 
-	//mask pbr
-	std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
-	oniMask->m_modelMatrix = glm::scale(oniMask->m_modelMatrix, glm::vec3(1.0f));
-	oniMask->m_modelMatrix = glm::translate(oniMask->m_modelMatrix, glm::vec3(15.0f, -5.0f, 0.0f));
-	oniMask->m_modelMatrix = one_transform->model_matrix();
+	////mask pbr
+	auto oni = resource_s->load<Model>("../assets/sword/sword.fbx");
+	auto one_model = one->addComponent<ModelRenderer>(oni);
 
-	//sword pbr
-	std::shared_ptr<Model> sword = std::make_shared<Model>("../assets/sword/sword.fbx");
-	sword->m_modelMatrix = glm::scale(sword->m_modelMatrix, glm::vec3(10.0f));
-	sword->m_modelMatrix = glm::rotate(sword->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//auto oniMask = resource_s->load<Model>("../assets/oni/onito.fbx");
+	//std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
+	//std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
+	//std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
+	//std::shared_ptr<Model> oniMask = std::make_shared<Model>("../assets/oni/onito.fbx");
+	//oniMask->m_modelMatrix = glm::scale(oniMask->m_modelMatrix, glm::vec3(1.0f));
+	//oniMask->m_modelMatrix = glm::translate(oniMask->m_modelMatrix, glm::vec3(15.0f, -5.0f, 0.0f));
+	//oniMask->m_modelMatrix = one_transform->model_matrix();
+
+	////sword pbr
+	//std::shared_ptr<Model> sword = std::make_shared<Model>("../assets/sword/sword.fbx");
+	//sword->m_modelMatrix = glm::scale(sword->m_modelMatrix, glm::vec3(10.0f));
+	//sword->m_modelMatrix = glm::rotate(sword->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 	 
 
@@ -159,14 +146,14 @@ int main(int argc, char *argv[])
 	std::shared_ptr<Model> lamp0 = std::make_shared<Model>("../assets/cube.obj");
 
 	//lamp 1 - static
-	std::shared_ptr<Model> lamp1 = std::make_shared<Model>("../assets/cube.obj");
-	lamp1->m_modelMatrix = glm::translate(glm::mat4{ 1.0f }, lightPos[1]);
-	lamp1->m_modelMatrix = glm::scale(lamp1->m_modelMatrix, glm::vec3(0.2f, 0.2f, 0.2f));
+	//std::shared_ptr<Model> lamp1 = std::make_shared<Model>("../assets/cube.obj");
+	//lamp1->m_modelMatrix = glm::translate(glm::mat4{ 1.0f }, lightPos[1]);
+	//lamp1->m_modelMatrix = glm::scale(lamp1->m_modelMatrix, glm::vec3(0.2f, 0.2f, 0.2f));
 
 	//lamp 2 - static
-	std::shared_ptr<Model> lamp2 = std::make_shared<Model>("../assets/cube.obj");
-	lamp2->m_modelMatrix = glm::translate(glm::mat4{ 1.0f }, lightPos[2]);
-	lamp2->m_modelMatrix = glm::scale(lamp2->m_modelMatrix, glm::vec3{0.2f, 0.2f, 0.2f});
+	//std::shared_ptr<Model> lamp2 = std::make_shared<Model>("../assets/cube.obj");
+	//lamp2->m_modelMatrix = glm::translate(glm::mat4{ 1.0f }, lightPos[2]);
+	//lamp2->m_modelMatrix = glm::scale(lamp2->m_modelMatrix, glm::vec3{0.2f, 0.2f, 0.2f});
 
 
 	//camera
@@ -251,7 +238,7 @@ int main(int argc, char *argv[])
 		//}
 
 		//tv->RenderMeshes(*pbrShader);
-		oniMask->RenderMeshes(*pbrShader, one_transform.get());
+		one_model->RenderMeshes(*pbrShader, *one_transform);
 		//sword->RenderMeshes(*pbrShader);
 
 		pbrShader->StopUsing();

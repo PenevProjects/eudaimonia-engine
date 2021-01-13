@@ -43,6 +43,11 @@ add_executable(eudaimonia
 	src/InputSystem.h
 	src/InputSystem.cpp
 
+	src/Resource.h
+	src/ResourceSystem.h
+	src/ModelRenderer.h
+	src/ModelRenderer.cpp
+
 	src/Mesh.h
 	src/Mesh.cpp
 	src/Model.h

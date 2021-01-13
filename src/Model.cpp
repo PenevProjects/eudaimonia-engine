@@ -2,21 +2,14 @@
 #include "Shader.h"
 #include "Transform.h"
 #include <iostream>
+#include "Mesh.h"
+#include "Texture.h"
 
 
 Model::Model(std::string _path) :
-	m_modelMatrix({ 1.0f })
+	IResource(_path)
 {
 	ImportModel(_path);
-}
-
-void Model::RenderMeshes(const Shader &_shader, const Transform* transform)
-{
-	_shader.setMat4("u_Model", transform->model_matrix());
-	for (auto& mesh : m_meshes)
-	{
-		mesh->Render(_shader);
-	}
 }
 
 
@@ -30,7 +23,7 @@ void Model::ImportModel(std::string _path)
 		std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
 		return;
 	}
-	m_directory = _path.substr(0, _path.find_last_of('/'));
+	this->directory_ = _path.substr(0, _path.find_last_of('/'));
 	std::cout << "\nImporting model: " << _path;
 
 	ProcessNode(scene->mRootNode, scene);
@@ -58,36 +51,25 @@ void Model::ProcessNode(aiNode *_node, const aiScene *_scene)
 std::vector<std::shared_ptr<Texture>> Model::LoadMaterialTextures(const aiScene* _scene, aiMaterial* _mat)
 {
 	std::vector<std::shared_ptr<Texture>> textures;
-	// 1. diffuse maps
+
 	std::vector<std::shared_ptr<Texture>> diffuseMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_DIFFUSE, "texture_diffuse");
 	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-	// 2. specular maps
 	std::vector<std::shared_ptr<Texture>> specularMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_SPECULAR, "texture_specular");
 	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-	// 3. normal maps
 	std::vector<std::shared_ptr<Texture>> normalMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_HEIGHT, "texture_normal");
 	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-	// 4. height maps
 	std::vector<std::shared_ptr<Texture>> heightMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_AMBIENT, "texture_height");
 	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-	// 5. base color maps
 	std::vector<std::shared_ptr<Texture>> bcMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_BASE_COLOR, "texture_albedo");
 	textures.insert(textures.end(), bcMaps.begin(), bcMaps.end());
-	// 6. normal PBR maps
 	std::vector<std::shared_ptr<Texture>> normalPbrMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_NORMAL_CAMERA, "texture_normal");
 	textures.insert(textures.end(), normalPbrMaps.begin(), normalPbrMaps.end());
-	// 7. metallic maps
 	std::vector<std::shared_ptr<Texture>> metallicMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_METALNESS, "texture_metallic");
 	textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
-	// 8. roughness maps
 	std::vector<std::shared_ptr<Texture>> roughnessMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
 	textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-	// 9. ambient occlusion maps
 	std::vector<std::shared_ptr<Texture>> aoMaps = LoadTexturesOfType(_scene, _mat, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
 	textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-
-
-	
 	return textures;
 }
 
@@ -132,7 +114,7 @@ std::vector<std::shared_ptr<Texture>> Model::LoadTexturesOfType(const aiScene* s
 
 				//process path
 				std::string filename = pathToTexture.C_Str();
-				filename = m_directory + '/' + filename;
+				filename = directory_ + '/' + filename;
 				//construct from file path
 				std::shared_ptr<Texture> texture = std::make_shared<Texture>(filename, _typeName);
 				//push to local texture vector(of uniform types)

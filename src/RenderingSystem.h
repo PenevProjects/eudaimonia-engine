@@ -25,9 +25,9 @@ public:
 	void update() {}
 
 	/// Generates and returns a view matrix of the passed camera.
-	glm::mat4 viewMatrix(Transform* transform);
+	glm::mat4 viewMatrix(const Transform& transform);
 	/// Generates and returns a perspective projection matrix of the passed camera.
-	glm::mat4 perspectiveProjection(Camera* camera);
+	glm::mat4 perspectiveProjection(const Camera& camera);
 	/// Generates and returns an ortographic projection matrix of the passed camera.
 	glm::mat4 orthoProjection();
 };
