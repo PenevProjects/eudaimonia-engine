@@ -1,6 +1,7 @@
 #include "RenderingSystem.h"
 #include "Transform.h"
 #include "Camera.h"
+#include "ModelRenderer.h"
 
 int RenderingSystem::screen_width_ = 1280;
 int RenderingSystem::screen_height_ = 720;
@@ -68,6 +69,7 @@ void RenderingSystem::setup()
 
 void RenderingSystem::tick()
 {
+	//process window size
 	SDL_GetWindowSize(window_, &screen_width_, &screen_height_);
 	glViewport(0, 0, screen_width_, screen_height_);
 }
@@ -75,11 +77,11 @@ void RenderingSystem::tick()
 
 glm::mat4 RenderingSystem::viewMatrix(const Transform& transform)
 {
-	return glm::lookAt(transform->position, {transform->position + transform->forward()}, transform->up());
+	return glm::lookAt(transform.position, {transform.position + transform.forward()}, transform.up());
 }
 glm::mat4 RenderingSystem::perspectiveProjection(const Camera& camera)
 {
-	return glm::perspective(glm::radians(camera->fov_), (float)screen_width_ / (float)screen_height_, 0.1f, 1000.0f);
+	return glm::perspective(glm::radians(camera.fov_), (float)screen_width_ / (float)screen_height_, 0.1f, 1000.0f);
 }
 glm::mat4 RenderingSystem::orthoProjection()
 {

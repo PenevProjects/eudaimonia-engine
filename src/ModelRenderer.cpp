@@ -4,11 +4,20 @@
 #include "Model.h"
 #include "Mesh.h"
 
-void ModelRenderer::RenderMeshes(const Shader& _shader, const Transform& transform)
+
+void ModelRenderer::setup(std::shared_ptr<Model> model, std::shared_ptr<Transform> transform, std::shared_ptr<Shader> shader)
 {
-	_shader.setMat4("u_Model", transform.model_matrix());
+	this->model_ = model;
+	this->transform_ = transform;
+	this->shader_ = shader;
+}
+void ModelRenderer::RenderMeshes()
+{
+	shader_.lock()->setMat4("u_Model", transform_.lock()->model_matrix());
 	for (auto& mesh : model_->m_meshes)
 	{
-		mesh->Render(_shader);
+		mesh->Render(*shader_.lock());
 	}
 }
+
+

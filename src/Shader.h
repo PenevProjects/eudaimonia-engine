@@ -1,10 +1,11 @@
-#pragma once
+#ifndef _SHADER_H
+#define _SHADER_H
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#include "Camera.h"
+#include <string>
 
 
 class Shader
@@ -21,9 +22,9 @@ public:
 	*/
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
 	///Binds current shader object
-	void Use();
+	void use();
 	///Unbinds current shader object
-	void StopUsing();
+	void stopUsing();
 	/**
 	*\brief Sets viewMatrix of current shader.
 	*
@@ -94,3 +95,5 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(shaderProgram, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 	}
 };
+
+#endif

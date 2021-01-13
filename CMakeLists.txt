@@ -58,7 +58,6 @@ add_executable(eudaimonia
 
 	src/main.cpp
 	src/Camera.h
-	src/Camera.cpp
 	src/Shader.h
 	src/Shader.cpp
 	src/Texture.h

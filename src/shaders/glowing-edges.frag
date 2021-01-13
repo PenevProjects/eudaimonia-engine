@@ -5,12 +5,12 @@ in vec2 TexCoords;
 
 
 
-uniform float screenWidth;
-uniform float screenHeight;
-float step_w = 1.0/screenWidth;
-float step_h = 1.0/screenHeight;
+uniform float u_screenWidth;
+uniform float u_screenHeight;
+float step_w = 1.0/u_screenWidth;
+float step_h = 1.0/u_screenHeight;
 
-uniform sampler2D screenTexture;	
+uniform sampler2D u_screenTexture;	
 #define KERNEL_SIZE 9
 
 void main(void) 
@@ -28,15 +28,15 @@ void main(void)
     );
 
     float kernel[KERNEL_SIZE] = float[](
-        -1, -1, -1,
-        -1,  9, -1,
-        -1, -1, -1
+        1, 2, 1,
+        0,  0, 0,
+        -1, -2, -1
     );
 
 	vec3 sampleTex[KERNEL_SIZE];
 	for(int i = 0; i < KERNEL_SIZE; i++)
 	{
-		sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
+		sampleTex[i] = vec3(texture(u_screenTexture, TexCoords.st + offsets[i]));
 	}
 
 	vec3 color = vec3(0.0);

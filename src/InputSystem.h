@@ -29,8 +29,8 @@ class Mouse
 	int y_;
 public:
 	void update();
-	float delta_x() { return this->delta_x_; }
-	float delta_y() { return this->delta_y_; }
+	int delta_x() { return this->delta_x_; }
+	int delta_y() { return this->delta_y_; }
 	int x() { return this->x_; }
 	int y() { return this->y_; }
 	/**

@@ -42,7 +42,7 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 	// ----------------------------------------------------------------------------------------------
 
 	//set static shader uniform variables
-	equirectToCubemapShader->Use();
+	equirectToCubemapShader->use();
 	equirectToCubemapShader->setInt("equirectangularMap", 0);
 	equirectToCubemapShader->setMat4("u_Projection", m_captureProjection);
 
@@ -82,7 +82,7 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 
 	// pbr: solve diffuse integral by convolution to create an irradiance (cube)map.
 	// -----------------------------------------------------------------------------
-	irradianceConvShader->Use();
+	irradianceConvShader->use();
 	irradianceConvShader->setInt("u_environmentCubemap", 0);
 	irradianceConvShader->setMat4("u_Projection", m_captureProjection);
 	glActiveTexture(GL_TEXTURE0);
@@ -103,7 +103,7 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 	// run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
 	// ----------------------------------------------------------------------------------------------------
 
-	prefilterConvShader->Use();
+	prefilterConvShader->use();
 	prefilterConvShader->setInt("u_environmentCubemap", 0);
 	prefilterConvShader->setMat4("u_Projection", m_captureProjection);
 	glActiveTexture(GL_TEXTURE0);
@@ -150,7 +150,7 @@ Skybox::Skybox(std::string _path, unsigned int _size) :
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_brdfLookUpTexture->m_id, 0);
 
 	glViewport(0, 0, m_size, m_size);
-	brdfLutShader->Use();
+	brdfLutShader->use();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	environmentFramebuffer->DrawRenderTextureQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -1,5 +1,4 @@
 #include "Shader.h"
-#include "Camera.h"
 
 #include <string>
 #include <fstream>
@@ -94,20 +93,12 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	glDetachShader(shaderProgram, fragment);
 	glDeleteShader(fragment);
 }
-void Shader::Use()
+void Shader::use()
 {
 	glUseProgram(shaderProgram);
 }
-void Shader::StopUsing()
+void Shader::stopUsing()
 {
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-//void Shader::setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D)
-//{
-//	setMat4("u_View", _cam.generateViewMatrix());
-//	if (perspective3D)
-//		setMat4("u_Projection", _cam.generateProjMatrixPersp());
-//	else
-//		setMat4("u_Projection", _cam.generateProjMatrixOrtho());
-//}
