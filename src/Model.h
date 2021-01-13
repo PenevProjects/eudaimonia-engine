@@ -24,7 +24,7 @@ class Model : public zero::IBaseComponent
 	friend class Texture;
 public:
 	glm::mat4 m_modelMatrix;
-	Model(const char *_path);
+	Model(std::string _path);
 	void RenderMeshes(const Shader &_shader, const Transform* transform);
 private:
 	std::vector<std::shared_ptr<Mesh>> m_meshes;

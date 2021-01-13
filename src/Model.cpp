@@ -4,7 +4,7 @@
 #include <iostream>
 
 
-Model::Model(const char *_path) :
+Model::Model(std::string _path) :
 	m_modelMatrix({ 1.0f })
 {
 	ImportModel(_path);

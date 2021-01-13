@@ -36,14 +36,14 @@ void RenderingSystem::setup()
 	
 
 
-	window = SDL_CreateWindow("ZERO DEMO. FPS: ",
+	window_ = SDL_CreateWindow("ZERO DEMO. FPS: ",
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		screen_width_, screen_height_,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	// Lock in mouse
 	//SDL_SetRelativeMouseMode(SDL_TRUE);
-	if (!SDL_GL_CreateContext(window))
+	if (!SDL_GL_CreateContext(window_))
 	{
 		SDL_Log("SDL_GL_CreateContext failed: %s", SDL_GetError());
 		return;
@@ -68,14 +68,14 @@ void RenderingSystem::setup()
 
 void RenderingSystem::tick()
 {
-	SDL_GetWindowSize(window, &screen_width_, &screen_height_);
+	SDL_GetWindowSize(window_, &screen_width_, &screen_height_);
 	glViewport(0, 0, screen_width_, screen_height_);
 }
 
 
 glm::mat4 RenderingSystem::viewMatrix(Transform* transform)
 {
-	return glm::lookAt(transform->position, transform->position + transform->forward(), transform->up());
+	return glm::lookAt(transform->position, {transform->position + transform->forward()}, transform->up());
 }
 glm::mat4 RenderingSystem::perspectiveProjection(Camera* camera)
 {

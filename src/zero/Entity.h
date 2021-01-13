@@ -570,7 +570,7 @@ private:
 		//check if type_manager exists
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager::createComponentType()?" << std::endl;
 			return nullptr;
 		}
 		return type_manager->addComponentInternal(entity);
@@ -584,7 +584,7 @@ private:
 
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager::createComponentType()?" << std::endl;
 			return nullptr;
 		}
 		return type_manager->getComponentInternal(entity);
@@ -596,7 +596,7 @@ private:
 		auto type_manager = component_manager_.lock()->getTypeManager<T_ComponentInstance>();
 		if (!type_manager)
 		{
-			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager.declare_component_type()?" << std::endl;
+			std::cout << "GET_COMPONENT::ERROR::Couldn't get type of ComponentTypeManager of " << typeid(T_ComponentInstance).name() << " from ComponentManager. Are you sure you have declared the component type with ComponentManager::createComponentType()?" << std::endl;
 			return;
 		}
 		type_manager->copyComponentInternal(current, source);

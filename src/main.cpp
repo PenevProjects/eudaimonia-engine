@@ -27,6 +27,7 @@
 #include "Transform.h"
 #include "TransformSystem.h"
 #include "RenderingSystem.h"
+#include "InputSystem.h"
 
 
 int main(int argc, char *argv[])
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
 
 	auto movement_s = sm->addSystem<TransformSystem>();
 	auto rendering_s = sm->addSystem<RenderingSystem>();
+	auto input_s = sm->addSystem<InputSystem>();
 
 	cm->createComponentType<Transform>();
 	cm->createComponentType<Camera>();
@@ -140,7 +142,7 @@ int main(int argc, char *argv[])
 	sword->m_modelMatrix = glm::scale(sword->m_modelMatrix, glm::vec3(10.0f));
 	sword->m_modelMatrix = glm::rotate(sword->m_modelMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-
+	 
 
 	glm::vec3 lightPos[] {
 		glm::vec3{ 0.0f, 1.0f, 15.0f},
@@ -202,60 +204,24 @@ int main(int argc, char *argv[])
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
-
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 	Time::Update();
 
-	while (!quit)
+	input_s->attachMouseController(cam1_transform, 0.5f);
+
+	while (!input_s->quit_flag_)
 	{
-		SDL_Event e = { 0 };
-		while (SDL_PollEvent(&e))
-		{
+		sm->tickAll();
 
-			if (e.type == SDL_QUIT)
-			{
-				quit = true;
-			}
-			else if (e.type == SDL_KEYDOWN)
-			{
-				//locking the cursor on F click
-				if (e.key.keysym.sym == SDLK_f)
-				{
-					if ((bool)SDL_GetRelativeMouseMode())
-						SDL_SetRelativeMouseMode(SDL_FALSE);
-					else
-						SDL_SetRelativeMouseMode(SDL_TRUE);
-				}
-			}
-			else if (e.type == SDL_MOUSEBUTTONDOWN)
-			{
-				//locking the cursor on mouse click
-				if ((bool)SDL_GetRelativeMouseMode())
-					SDL_SetRelativeMouseMode(SDL_FALSE);
-				else
-					SDL_SetRelativeMouseMode(SDL_TRUE);
-			}
-			else if (e.type == SDL_MOUSEMOTION)
-			{
-				//process mouse input
-				float deltaX = static_cast<float>(e.motion.xrel);
-				float deltaY = static_cast<float>(-e.motion.yrel);
-				//cam1->ProcessMouseInput(deltaX, deltaY);
-			}
+		input_s->controlFromKeyboard(cam1_transform, 10.0f);
 
-		}
 		//time calculations
 		Time::Update();
-		Time::DisplayFPSinWindowTitle(rendering_s->window);
+		Time::DisplayFPSinWindowTitle(rendering_s->window_);
 
 
-
-		rendering_s->tick();
-
-		//camera updates
-		//cam1->ProcessKeyboardInput();
-		//cam1->ProcessZoom();
-		//cam1->setWindowSize(width, height);
-
+		view_mat = rendering_s->viewMatrix(cam1_transform.get());
+		proj_mat = rendering_s->perspectiveProjection(cam1_camera.get());
 	
 
 		//glBindFramebuffer(GL_FRAMEBUFFER, framebuf1->GetID());
@@ -309,17 +275,19 @@ int main(int argc, char *argv[])
 
 		///////////////////////SKYBOX//////////////////////
 		skyboxShader->Use();
+		skyboxShader->setMat4("u_View", view_mat);
+		skyboxShader->setMat4("u_Projection", proj_mat);
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetSkyboxMap().lock()->GetId());
 		skybox->RenderCube();
 		skyboxShader->StopUsing();
 		glBindVertexArray(0);
 			
-		SDL_GL_SwapWindow(rendering_s->window);
+		SDL_GL_SwapWindow(rendering_s->window_);
 		Time::Reset();
 	}
 
-	SDL_DestroyWindow(rendering_s->window);
+	SDL_DestroyWindow(rendering_s->window_);
 	SDL_Quit();
 
 	return 0;

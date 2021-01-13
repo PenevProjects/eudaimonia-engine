@@ -1,42 +1,106 @@
 
+#include "InputSystem.h"
+#include "Transform.h"
+
+void Keyboard::update()
+{
+	keyboard_state_ = SDL_GetKeyboardState(NULL);
+}
+
+bool Keyboard::keyPressed(SDL_Scancode key)
+{
+	return keyboard_state_[key] ? true : false;
+}
+
+void Mouse::update()
+{
+	SDL_GetMouseState(&x_, &y_);
+	SDL_GetRelativeMouseState(&delta_x_, &delta_y_);
+}
+
+void Mouse::controller(std::shared_ptr<Transform> transform, float sensitivity)
+{
+	transform->rotation_euler.y += -delta_x_ * sensitivity * (float)Time::GetDeltaTime();
+	transform->rotation_euler.x -= delta_y_ * sensitivity * (float)Time::GetDeltaTime();
+	std::cout << transform->rotation_euler.x << std::endl;
+	if (transform->rotation_euler.x > glm::radians(89.0f))
+	{
+		transform->rotation_euler.x = glm::radians(89.0f);
+	}
+	if (transform->rotation_euler.x < glm::radians(-89.0f))
+	{
+		transform->rotation_euler.x = glm::radians(-89.0f);
+	}
+}
+void InputSystem::setup()
+{
+	quit_flag_ = false;
+	keyboard_ = std::make_unique<Keyboard>();
+	mouse_ = std::make_unique<Mouse>();
+}
+
+void InputSystem::tick()
+{
+	SDL_Event e = { 0 };
+	while (SDL_PollEvent(&e))
+	{
+		mouse_->update();
+		for (auto& controller_instance : mouse_controllers_)
+		{
+			mouse_->controller(controller_instance.first, controller_instance.second);
+		}
+
+		keyboard_->update();
+
+		if (e.type == SDL_QUIT)
+		{
+			quit_flag_ = true;
+		}
+		else if (e.type == SDL_KEYDOWN)
+		{
+			//locking the cursor on F click
+			if (e.key.keysym.sym == SDLK_f)
+			{
+				if ((bool)SDL_GetRelativeMouseMode())
+					SDL_SetRelativeMouseMode(SDL_FALSE);
+				else
+					SDL_SetRelativeMouseMode(SDL_TRUE);
+			}
+		}
+	}
+}
 
 //
-//void Camera::ProcessKeyboardInput()
-//{
-//	const Uint8* key = SDL_GetKeyboardState(NULL);
-//	if (key[SDL_SCANCODE_W]) //moving left
-//	{
-//		m_Position += m_CameraMovementSpeed * m_Facing * (float)Time::GetDeltaTime();
-//	}
-//	if (key[SDL_SCANCODE_S])
-//	{
-//		m_Position -= m_CameraMovementSpeed * m_Facing * (float)Time::GetDeltaTime();
-//	}
-//	if (key[SDL_SCANCODE_D])
-//	{
-//		m_Position += glm::normalize(glm::cross(m_Facing, m_Up)) * m_CameraMovementSpeed * (float)Time::GetDeltaTime();
-//	}
-//	if (key[SDL_SCANCODE_A])
-//	{
-//		m_Position -= glm::normalize(glm::cross(m_Facing, m_Up)) * m_CameraMovementSpeed * (float)Time::GetDeltaTime();
-//	}
-//}
+
 //
 ///**
 //*\brief Handles input for mouse orientation.
 //*
-//* Processes current keystroke and transforms the camera's position using current orientation of camera.
+//* Processes current mouse input and rotates transform as required.
 //*/
-//void Camera::ProcessMouseInput(float xoffset, float yoffset)
-//{
-//	yaw_ += (xoffset * m_CameraSensitivity ); //* Time::GetDeltaTime()
-//	pitch_ += (yoffset * m_CameraSensitivity ); //* Time::GetDeltaTime()
-//
-//	if (pitch_ > 89.0f)
-//	{
-//		pitch_ = 89.0f;
-//	}
-//	if (pitch_ < -89.0f)
-//	{
-//		pitch_ = -89.0f;
-//	}
+void InputSystem::attachMouseController(std::shared_ptr<Transform> transform, float sensitivity)
+{
+	mouse_controllers_.emplace_back(transform, sensitivity);
+}
+void InputSystem::controlFromKeyboard(std::shared_ptr<Transform> transform, float speed)
+{
+	if (keyboard_->keyPressed(SDL_SCANCODE_W)) //moving left
+	{
+		transform->position += speed * transform->forward() * (float)Time::GetDeltaTime();
+	}
+	if (keyboard_->keyPressed(SDL_SCANCODE_S))
+	{
+		transform->position -= speed * transform->forward() * (float)Time::GetDeltaTime();
+	}
+	if (keyboard_->keyPressed(SDL_SCANCODE_D))
+	{
+		transform->position += speed * transform->right() * (float)Time::GetDeltaTime();
+	}
+	if (keyboard_->keyPressed(SDL_SCANCODE_A))
+	{
+		transform->position -= speed * transform->right() * (float)Time::GetDeltaTime();
+	}
+}
+
+
+

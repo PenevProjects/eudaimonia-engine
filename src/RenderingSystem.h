@@ -17,14 +17,14 @@ class RenderingSystem : public zero::IBaseSystem
 public:
 	static int screen_width_;
 	static int screen_height_;
-	SDL_Window *window;
+	SDL_Window *window_;
 
 	RenderingSystem() = default;
 	void setup();
 	void tick();
 	void update() {}
 
-	/// Generates and returns a view matrix of the current camera.
+	/// Generates and returns a view matrix of the passed camera.
 	glm::mat4 viewMatrix(Transform* transform);
 	/// Generates and returns a perspective projection matrix of the passed camera.
 	glm::mat4 perspectiveProjection(Camera* camera);
