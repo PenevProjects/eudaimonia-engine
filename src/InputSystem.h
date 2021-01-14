@@ -1,9 +1,6 @@
 #ifndef _INPUT_SYSTEM_H
 #define _INPUT_SYSTEM_H
 
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
 #include <SDL2/SDL.h>
 #include <vector>
 #include <memory>

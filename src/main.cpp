@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 		pp_flag = true;
 	}
 
+
 	std::unique_ptr<zero::Core> core = zero::Core::createCore();
 	auto em = core->entity_manager();
 	auto cm = core->component_manager();
@@ -70,7 +71,7 @@ int main(int argc, char *argv[])
 	std::shared_ptr<Shader> skyboxShader = std::make_shared<Shader>("../src/shaders/skybox.vert", "../src/shaders/skybox.frag");
 	std::shared_ptr<Shader> pbrShader = std::make_shared<Shader>("../src/shaders/pbr/pbr.vert", "../src/shaders/pbr/pbr.frag");
 	std::shared_ptr<Shader> geShader = std::make_shared<Shader>("../src/shaders/pbr/framebuf-quad.vert", "../src/shaders/glowing-edges.frag");
-	std::shared_ptr<FrameBuffer> ppFramebuf = std::make_shared<FrameBuffer>(rendering_s->screen_width_, rendering_s->screen_height_);
+	std::shared_ptr<FrameBuffer> ppFramebuf = std::make_shared<FrameBuffer>(rendering_s->screen_width, rendering_s->screen_height);
 
 	//Max number of texture units that can be used concurrently from a model file is currently 9. 
 	unsigned int skyboxSamplerID = 10;
@@ -135,14 +136,14 @@ int main(int argc, char *argv[])
 
 	geShader->use();
 	geShader->setInt("u_screenTexture", 0);
-	geShader->setFloat("u_screenWidth", (float)rendering_s->screen_width_);
-	geShader->setFloat("u_screenHeight", (float)rendering_s->screen_height_);
+	geShader->setFloat("u_screenWidth", (float)rendering_s->screen_width);
+	geShader->setFloat("u_screenHeight", (float)rendering_s->screen_height);
 	geShader->stopUsing();
 
 	//wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-	Time::Update();
+	Time::update();
 
 
 	while (!input_s->quit_flag_)
@@ -150,15 +151,15 @@ int main(int argc, char *argv[])
 		sm->tickAll();
 		input_s->controlFromKeyboard(cam1_transform, 10.0f);
 		//time calculations
-		Time::Update();
-		Time::DisplayFPSinWindowTitle(rendering_s->window_);
+		Time::update();
+		Time::displayFPSinWindowTitle(rendering_s->window, rendering_s->title);
 
 		view_mat = rendering_s->viewMatrix(*cam1_transform);
 		proj_mat = rendering_s->perspectiveProjection(*cam1_camera);
 	
 		if (pp_flag)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, ppFramebuf->GetFrameBufferObject());
+			glBindFramebuffer(GL_FRAMEBUFFER, ppFramebuf->fbo());
 		}
 		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -172,11 +173,11 @@ int main(int argc, char *argv[])
 
 		// bind pre-computed IBL data
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetIrradianceMap().lock()->GetId());
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->irradiance_map().lock()->id());
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetPrefilterMap().lock()->GetId());
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->prefilter_map().lock()->id());
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 3);
-		glBindTexture(GL_TEXTURE_2D, skybox->GetBrdfLUT().lock()->GetId());
+		glBindTexture(GL_TEXTURE_2D, skybox->brdf_lut().lock()->id());
 
 		one_model->RenderMeshes();
 
@@ -203,8 +204,8 @@ int main(int argc, char *argv[])
 		skyboxShader->setMat4("u_View", view_mat);
 		skyboxShader->setMat4("u_Projection", proj_mat);
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->GetSkyboxMap().lock()->GetId());
-		skybox->RenderCube();
+		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->environment_map().lock()->id());
+		skybox->renderCube();
 		skyboxShader->stopUsing();
 
 		if (pp_flag)
@@ -213,20 +214,20 @@ int main(int argc, char *argv[])
 			glDisable(GL_DEPTH_TEST);
 			glClear(GL_COLOR_BUFFER_BIT);
 			geShader->use();
-			geShader->setFloat("u_screenWidth", (float)rendering_s->screen_width_);
-			geShader->setFloat("u_screenHeight", (float)rendering_s->screen_height_);
+			geShader->setFloat("u_screenWidth", (float)rendering_s->screen_width);
+			geShader->setFloat("u_screenHeight", (float)rendering_s->screen_height);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, ppFramebuf->GetRenderTexture());
-			ppFramebuf->DrawRenderTextureQuad();
+			glBindTexture(GL_TEXTURE_2D, ppFramebuf->texture());
+			ppFramebuf->drawQuad();
 			geShader->stopUsing();
 		}
 
 			
-		SDL_GL_SwapWindow(rendering_s->window_);
-		Time::Reset();
+		SDL_GL_SwapWindow(rendering_s->window);
+		Time::reset();
 	}
 
-	SDL_DestroyWindow(rendering_s->window_);
+	SDL_DestroyWindow(rendering_s->window);
 	SDL_Quit();
 
 	return 0;

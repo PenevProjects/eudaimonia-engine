@@ -3,8 +3,8 @@
 #include "Camera.h"
 #include "ModelRenderer.h"
 
-int RenderingSystem::screen_width_ = 1280;
-int RenderingSystem::screen_height_ = 720;
+int RenderingSystem::screen_width = 1280;
+int RenderingSystem::screen_height = 720;
 
 void RenderingSystem::setup()
 {
@@ -25,26 +25,26 @@ void RenderingSystem::setup()
 	if (SDL_GetDesktopDisplayMode(0, &dm) != 0)
 	{
 		SDL_Log("SDL_GetDesktopDisplayMode failed: %s", SDL_GetError());
-		screen_width_ = 800;
-		screen_height_ = 600;
+		screen_width = 800;
+		screen_height = 600;
 	}
 	else
 	{
-		screen_width_ = int(dm.w * 0.8);
-		screen_height_ = int(dm.h * 0.8);
+		screen_width = int(dm.w * 0.8);
+		screen_height = int(dm.h * 0.8);
 	}
 
 	
 
-
-	window_ = SDL_CreateWindow("ZERO DEMO. FPS: ",
+	title = { "zero.  FPS: " };
+	window = SDL_CreateWindow(title.c_str(),
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		screen_width_, screen_height_,
+		screen_width, screen_height,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	// Lock in mouse
 	//SDL_SetRelativeMouseMode(SDL_TRUE);
-	if (!SDL_GL_CreateContext(window_))
+	if (!SDL_GL_CreateContext(window))
 	{
 		SDL_Log("SDL_GL_CreateContext failed: %s", SDL_GetError());
 		return;
@@ -69,8 +69,8 @@ void RenderingSystem::setup()
 void RenderingSystem::tick()
 {
 	//process window size
-	SDL_GetWindowSize(window_, &screen_width_, &screen_height_);
-	glViewport(0, 0, screen_width_, screen_height_);
+	SDL_GetWindowSize(window, &screen_width, &screen_height);
+	glViewport(0, 0, screen_width, screen_height);
 }
 
 
@@ -80,10 +80,10 @@ glm::mat4 RenderingSystem::viewMatrix(const Transform& transform)
 }
 glm::mat4 RenderingSystem::perspectiveProjection(const Camera& camera)
 {
-	return glm::perspective(glm::radians(camera.fov_), (float)screen_width_ / (float)screen_height_, 0.1f, 1000.0f);
+	return glm::perspective(glm::radians(camera.fov_), (float)screen_width / (float)screen_height, 0.1f, 1000.0f);
 }
 glm::mat4 RenderingSystem::orthoProjection()
 {
-	return glm::ortho(-float(screen_width_ / 2), float(screen_width_ / 2), float(screen_height_ / 2), -float(screen_height_ / 2), 0.1f, 100.0f);
+	return glm::ortho(-float(screen_width / 2), float(screen_width / 2), float(screen_height / 2), -float(screen_height / 2), 0.1f, 100.0f);
 }
 

@@ -1,27 +1,27 @@
-#ifndef _TIME_
-#define _TIME_
+#ifndef _TIME_H
+#define _TIME_H
 
 #include <windows.h>
 #include <SDL2/SDL.h>
-
+#include <string>
 
 
 class Time
 {
 private:
-	static LARGE_INTEGER StartingTime;
-	static LARGE_INTEGER EndingTime;
-	static LARGE_INTEGER ElapsedMicroseconds;
-	static LARGE_INTEGER Frequency;
-	static double deltaTime;
-	static int frames;
-	static float avgFPS;
+	static LARGE_INTEGER starting_time_;
+	static LARGE_INTEGER ending_time_;
+	static LARGE_INTEGER elapsed_ms_;
+	static LARGE_INTEGER frequency_;
+	static double delta_time_;
+	static int frames_;
+	static float avg_FPS_;
 public:
-	static double GetDeltaTime() { return deltaTime; }
-	static double GetFPS() { return 1.0 / deltaTime; }
-	static void Update();
-	static void Reset();
-	static void DisplayFPSinWindowTitle(SDL_Window* _window);
+	static double delta_time() { return delta_time_; }
+	static double fps() { return 1.0 / delta_time_; }
+	static void update();
+	static void reset();
+	static void displayFPSinWindowTitle(SDL_Window* _window, std::string _title);
 };
 
 

@@ -1,4 +1,6 @@
-
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 #include "InputSystem.h"
 #include "Transform.h"
 
@@ -20,8 +22,8 @@ void Mouse::update()
 
 void Mouse::controller(std::shared_ptr<Transform> transform, float sensitivity)
 {
-	transform->rotation_euler.y += -delta_x_ * sensitivity * (float)Time::GetDeltaTime();
-	transform->rotation_euler.x -= delta_y_ * sensitivity * (float)Time::GetDeltaTime();
+	transform->rotation_euler.y += -delta_x_ * sensitivity * (float)Time::delta_time();
+	transform->rotation_euler.x -= delta_y_ * sensitivity * (float)Time::delta_time();
 	if (transform->rotation_euler.x > glm::radians(89.0f))
 	{
 		transform->rotation_euler.x = glm::radians(89.0f);
@@ -85,19 +87,19 @@ void InputSystem::controlFromKeyboard(std::shared_ptr<Transform> transform, floa
 {
 	if (keyboard_->keyPressed(SDL_SCANCODE_W)) //moving left
 	{
-		transform->position += speed * transform->forward() * (float)Time::GetDeltaTime();
+		transform->position += speed * transform->forward() * (float)Time::delta_time();
 	}
 	if (keyboard_->keyPressed(SDL_SCANCODE_S))
 	{
-		transform->position -= speed * transform->forward() * (float)Time::GetDeltaTime();
+		transform->position -= speed * transform->forward() * (float)Time::delta_time();
 	}
 	if (keyboard_->keyPressed(SDL_SCANCODE_D))
 	{
-		transform->position += speed * transform->right() * (float)Time::GetDeltaTime();
+		transform->position += speed * transform->right() * (float)Time::delta_time();
 	}
 	if (keyboard_->keyPressed(SDL_SCANCODE_A))
 	{
-		transform->position -= speed * transform->right() * (float)Time::GetDeltaTime();
+		transform->position -= speed * transform->right() * (float)Time::delta_time();
 	}
 }
 

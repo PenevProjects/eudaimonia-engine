@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <SDL2/SDL.h>
-
+#include <string>
 #include "zero/System.h"
 
 struct Camera;
@@ -15,9 +15,10 @@ class Model;
 class RenderingSystem : public zero::IBaseSystem
 {
 public:
-	static int screen_width_;
-	static int screen_height_;
-	SDL_Window *window_;
+	static int screen_width;
+	static int screen_height;
+	SDL_Window *window;
+	std::string title;
 
 	RenderingSystem() = default;
 	void setup();

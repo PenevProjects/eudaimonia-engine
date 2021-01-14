@@ -1,8 +1,12 @@
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "TransformSystem.h"
 #include "Transform.h"
 #include "zero/Entity.h"
-#include <glm/gtx/string_cast.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 
 void TransformSystem::buildModelMatrix(std::shared_ptr<Transform> transform)
@@ -25,7 +29,7 @@ void TransformSystem::update(std::shared_ptr<Transform> transform)
 
 void TransformSystem::tick()
 {
-	//TODO
+	//TODO: this is too slow
 	auto transform_manager = system_manager()->component_manager()->getTypeManager<Transform>();
 	
 	for (auto& instance : *transform_manager->instances_ptr())

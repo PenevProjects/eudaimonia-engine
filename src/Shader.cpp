@@ -71,31 +71,31 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 
 
 	// shader Program
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertex);
-	glAttachShader(shaderProgram, fragment);
+	shader_program_ = glCreateProgram();
+	glAttachShader(shader_program_, vertex);
+	glAttachShader(shader_program_, fragment);
 	//Karsten's way of setting attribute locations: set layout locations for attributes (just before link program)
 	//glBindAttribLocation(shaderProgram, 0, "in_Position");
 	//glBindAttribLocation(shaderProgram, 1, "in_TexCoord");
 	//glBindAttribLocation(shaderProgram, 2, "in_Color");
-	glLinkProgram(shaderProgram);
+	glLinkProgram(shader_program_);
 	// print linking errors if any
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	glGetProgramiv(shader_program_, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetProgramInfoLog(shader_program_, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
 	}
 
 	// delete the shaders as they're linked into our program now and no longer necessary
-	glDetachShader(shaderProgram, vertex);
+	glDetachShader(shader_program_, vertex);
 	glDeleteShader(vertex);
-	glDetachShader(shaderProgram, fragment);
+	glDetachShader(shader_program_, fragment);
 	glDeleteShader(fragment);
 }
 void Shader::use()
 {
-	glUseProgram(shaderProgram);
+	glUseProgram(shader_program_);
 }
 void Shader::stopUsing()
 {

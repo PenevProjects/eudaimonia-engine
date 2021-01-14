@@ -1,9 +1,9 @@
 #ifndef _TRANSFORM_COMPONENT_H
 #define _TRANSFORM_COMPONENT_H
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <memory>
 
 #include "zero/Component.h"
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SKYBOX_H
+#define _SKYBOX_H
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -23,33 +24,32 @@ public:
 	~Skybox();
 	Skybox(const Skybox&) = delete;
 	Skybox& operator=(const Skybox&) = delete;
-	void RenderCube();
-	std::weak_ptr<Texture> GetSkyboxMap() { return m_environmentMap; }
-	std::weak_ptr<Texture> GetIrradianceMap() { return m_irradiance; }
-	std::weak_ptr<Texture> GetPrefilterMap() { return m_prefilterMap; }
-	std::weak_ptr<Texture> GetBrdfLUT() { return m_brdfLookUpTexture; }
+	void renderCube();
+	std::weak_ptr<Texture> environment_map() { return environment_map_; }
+	std::weak_ptr<Texture> irradiance_map() { return irradiance_map_; }
+	std::weak_ptr<Texture> prefilter_map() { return prefilter_map_; }
+	std::weak_ptr<Texture> brdf_lut() { return brdf_lut_; }
 
 private:
-	std::shared_ptr<Texture> m_environmentMap;
-	std::shared_ptr<Texture> m_irradiance;
-	std::shared_ptr<Texture> m_prefilterMap;
-	std::shared_ptr<Texture> m_brdfLookUpTexture;
+	std::shared_ptr<Texture> environment_map_;
+	std::shared_ptr<Texture> irradiance_map_;
+	std::shared_ptr<Texture> prefilter_map_;
+	std::shared_ptr<Texture> brdf_lut_;
 
 	std::shared_ptr<FrameBuffer> m_framebuffer;
-	
 	//todo:
-	//void TransformHDRtoCubemap();	
-	//void GenerateEnvironmentMap();
-	//void GenerateIrradianceMap();
-	//void GeneratePrefilterMap();
-	//void GenerateBrdfLUT();
-	
-	void CreateCubeVAO();
+	//void transformHDRtoCubemap();	
+	//void generateEnvironmentMap();
+	//void generateIrradianceMap();
+	//void generatePrefilterMap();
+	//void generateBrdfLUT();
+	void createCubeVAO();
 
-	unsigned int m_vao;
-	unsigned int m_size;
-	std::string m_path;
+	unsigned int vao_;
+	unsigned int size_;
+	std::string path_;
 
-	glm::mat4 m_captureProjection;
-	glm::mat4 m_captureView[6];
+	glm::mat4 capture_projection_;
+	glm::mat4 capture_view_[6];
 };
+#endif

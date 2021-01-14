@@ -1,20 +1,21 @@
 #include "Mesh.h"
+#include "Texture.h"
 #include "Shader.h"
 
 Mesh::~Mesh()
 {
-	glDeleteVertexArrays(1, &m_vao);
-	glDeleteVertexArrays(1, &m_vbo);
-	glDeleteVertexArrays(1, &m_ebo);
+	glDeleteVertexArrays(1, &vao_);
+	glDeleteVertexArrays(1, &vbo_);
+	glDeleteVertexArrays(1, &ebo_);
 }
 
 
 Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, std::vector<std::shared_ptr<Texture>> _textures, Colors _material)
 {
-	this->m_vertices = _vertices;
-	this->m_indices = _indices;
-	this->m_textures = _textures;
-	this->m_colors = _material;
+	this->vertices_ = _vertices;
+	this->indices_ = _indices;
+	this->textures_ = _textures;
+	this->colors_ = _material;
 
 	setupMeshVAO();
 }
@@ -65,7 +66,7 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene, std::vector<std::shared_ptr<Textu
 			tempVec.z = mesh->mBitangents[i].z;
 			vertex.bitangents = tempVec;
 		}
-		m_vertices.push_back(vertex);
+		vertices_.push_back(vertex);
 	}
 	// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -73,7 +74,7 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene, std::vector<std::shared_ptr<Textu
 		aiFace face = mesh->mFaces[i];
 		// retrieve all indices of the face and store them in the indices vector
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			this->m_indices.push_back(face.mIndices[j]);
+			this->indices_.push_back(face.mIndices[j]);
 	}
 
 
@@ -87,19 +88,19 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene, std::vector<std::shared_ptr<Textu
 	aiColor3D color(0.f, 0.f, 0.f);
 	Colors tempColors;
 	material->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-	m_colors.diffuse = glm::vec3(color.r, color.b, color.g);
+	colors_.diffuse = glm::vec3(color.r, color.b, color.g);
 
 	material->Get(AI_MATKEY_COLOR_AMBIENT, color);
-	m_colors.ambient = glm::vec3(color.r, color.b, color.g);
+	colors_.ambient = glm::vec3(color.r, color.b, color.g);
 
 	material->Get(AI_MATKEY_COLOR_SPECULAR, color);
-	m_colors.specular = glm::vec3(color.r, color.b, color.g);
+	colors_.specular = glm::vec3(color.r, color.b, color.g);
 
 
 	//add textures to textures vec
 	for (auto& texture : _textures)
 	{
-		m_textures.push_back(texture);
+		textures_.push_back(texture);
 	}
 
 	setupMeshVAO();
@@ -107,18 +108,18 @@ Mesh::Mesh(aiMesh *mesh, const aiScene *scene, std::vector<std::shared_ptr<Textu
 
 void Mesh::setupMeshVAO()
 {
-	glGenVertexArrays(1, &m_vao);
-	glGenBuffers(1, &m_vbo);
-	glGenBuffers(1, &m_ebo);
+	glGenVertexArrays(1, &vao_);
+	glGenBuffers(1, &vbo_);
+	glGenBuffers(1, &ebo_);
 
-	glBindVertexArray(m_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBindVertexArray(vao_);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 
-	glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), &m_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(Vertex), &vertices_[0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int),
-		&m_indices[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_.size() * sizeof(unsigned int),
+		&indices_[0], GL_STATIC_DRAW);
 
 	// vertex positions
 	glEnableVertexAttribArray(0);
@@ -139,29 +140,29 @@ void Mesh::setupMeshVAO()
 	glBindVertexArray(0);
 }
 
-void Mesh::Render(const Shader &_shader)
+void Mesh::render(const Shader &_shader)
 {
 	//for models without textures
 	//_shader.setBool("hasTextures", false);
 	//_shader.setVec3("material.diffuse", this->m_colors.diffuse);
 	//_shader.setVec3("material.specular", this->m_colors.specular);
 	//_shader.setVec3("material.ambient", this->m_colors.ambient);
-	if (!m_textures.empty())
+	if (!textures_.empty())
 	{
 		//_shader.setBool("hasTextures", true);
-		for (unsigned int i = 0; i < m_textures.size(); i++)
+		for (unsigned int i = 0; i < textures_.size(); i++)
 		{
 			// retrieve texture name
-			std::string name = m_textures[i]->m_typeName;
+			std::string name = textures_[i]->type_;
 			//set the id of the sampler
 			_shader.setInt(("material." + name).c_str(), i);
 			glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
-			glBindTexture(GL_TEXTURE_2D, m_textures[i]->m_id);
+			glBindTexture(GL_TEXTURE_2D, textures_[i]->id_);
 		}
 	}
 	// draw mesh
-	glBindVertexArray(m_vao);
-	glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(vao_);
+	glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 

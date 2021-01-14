@@ -14,9 +14,9 @@ void ModelRenderer::setup(std::shared_ptr<Model> model, std::shared_ptr<Transfor
 void ModelRenderer::RenderMeshes()
 {
 	shader_.lock()->setMat4("u_Model", transform_.lock()->model_matrix());
-	for (auto& mesh : model_->m_meshes)
+	for (auto& mesh : model_->meshes_)
 	{
-		mesh->Render(*shader_.lock());
+		mesh->render(*shader_.lock());
 	}
 }
 

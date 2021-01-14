@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MESH_RESOURCE_H
+#define _MESH_RESOURCE_H
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -11,8 +12,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "Texture.h"
-
+class Texture;
 class Shader;
 
 struct Vertex
@@ -34,11 +34,11 @@ struct Colors {
 class Mesh {
 	friend class Texture;
 public:
-	std::vector<Vertex> m_vertices;
-	std::vector<unsigned int> m_indices;
+	std::vector<Vertex> vertices_;
+	std::vector<unsigned int> indices_;
 	//using shared ptrs to avoid copy ctor
-	std::vector<std::shared_ptr<Texture>> m_textures;
-	Colors m_colors;
+	std::vector<std::shared_ptr<Texture>> textures_;
+	Colors colors_;
 	
 	Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, std::vector<std::shared_ptr<Texture>> _textures, Colors _material);
 	Mesh(aiMesh *_mesh, const aiScene *_scene, std::vector<std::shared_ptr<Texture>>& _textures);
@@ -47,12 +47,14 @@ public:
 	Mesh(const Mesh&) = delete;
 	
 	/**
-	* @param _shader A shader object passed by const-ref, because we don't want to transfer ownership.
-	*/
-	void Render(const Shader &_shader);
+	 * Binds all textures to a shader and renders a mesh.
+	 * @param _shader A shader object passed by const-ref, because we don't want to transfer ownership.
+	 */
+	void render(const Shader &_shader);
 
 private:
-	unsigned int m_vao, m_vbo, m_ebo;
+	unsigned int vao_, vbo_, ebo_;
 
 	void setupMeshVAO();
 };
+#endif

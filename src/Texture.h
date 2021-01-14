@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _TEXTURE_H
+#define _TEXTURE_H
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -13,12 +14,12 @@
 #include <vector>
 
 /**
-*\brief Controls texture objects. Needed because textures need to be glDestroyed.
-*
-*Can only be initialized through default constructor.
-*OpenGL encapsulates glTexture objects within the API. Memory management for glTextures is not controlled by the user -
-*this makes copy and copy assignment constructors dangerous to use, so they are deleted.
-**/
+ *\brief Controls texture objects. Needed because textures need to be glDestroyed.
+ *
+ *Can only be created through default constructor, because
+ *OpenGL encapsulates glTexture objects within the API. Memory management for glTextures is not controlled by the user -
+ *this makes copy and copy assignment constructors dangerous to use, so they are deleted.
+ **/
 class Texture {
 	friend class Skybox;
 	friend class Model;
@@ -36,11 +37,12 @@ public:
 	Texture(const Texture&) = delete;
 	Texture& operator=(const Texture&) = delete;
 
-	static unsigned int LoadCubemap(std::vector<std::string> _textureFaces);
-	unsigned int GetId() { return m_id; }
+	static unsigned int loadCubemap(std::vector<std::string> _textureFaces);
+	unsigned int id() { return id_; }
 private:
-	unsigned int m_id;
-	std::string m_typeName;
-	std::string m_path;
+	unsigned int id_;
+	std::string type_;
+	//TODO: this is a resource
+	std::string path_;
 };
-
+#endif

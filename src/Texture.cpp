@@ -5,20 +5,20 @@
 
 Texture::~Texture()
 {
-	glDeleteTextures(1, &m_id);
+	glDeleteTextures(1, &id_);
 }
 
 Texture::Texture(std::string _path, std::string _typeName, bool _gamma) :
-	m_typeName(_typeName),
-	m_path(_path)
+	type_(_typeName),
+	path_(_path)
 {
-	if (m_typeName != "hdr" && m_typeName != "HDR")
+	if (type_ != "hdr" && type_ != "HDR")
 	{
-		glGenTextures(1, &m_id);
+		glGenTextures(1, &id_);
 
 		//stbi implementation
 		int width, height, components;
-		unsigned char *data = stbi_load(m_path.c_str(), &width, &height, &components, 0);
+		unsigned char *data = stbi_load(path_.c_str(), &width, &height, &components, 0);
 		if (data)
 		{
 			GLenum format;
@@ -39,7 +39,7 @@ Texture::Texture(std::string _path, std::string _typeName, bool _gamma) :
 				format = GL_RGBA;
 			}
 
-			glBindTexture(GL_TEXTURE_2D, m_id);
+			glBindTexture(GL_TEXTURE_2D, id_);
 			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 
 			//gl parameters
@@ -59,14 +59,14 @@ Texture::Texture(std::string _path, std::string _typeName, bool _gamma) :
 	}
 	else
 	{// hdr texture
-		glGenTextures(1, &m_id);
+		glGenTextures(1, &id_);
 		//stbi implementation
 		stbi_set_flip_vertically_on_load(true);
 		int width, height, components;
-		float *data = stbi_loadf(m_path.c_str(), &width, &height, &components, 0);
+		float *data = stbi_loadf(path_.c_str(), &width, &height, &components, 0);
 		if (data)
 		{
-			glBindTexture(GL_TEXTURE_2D, m_id);
+			glBindTexture(GL_TEXTURE_2D, id_);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -79,7 +79,7 @@ Texture::Texture(std::string _path, std::string _typeName, bool _gamma) :
 		}
 		else
 		{
-			std::cout << "Texture data failed to load at path: " << m_path << std::endl;
+			std::cout << "Texture data failed to load at path: " << path_ << std::endl;
 		}
 	}
 
@@ -87,8 +87,8 @@ Texture::Texture(std::string _path, std::string _typeName, bool _gamma) :
 
 Texture::Texture(const aiTexture* texture, std::string _typeName, bool _gamma)
 {
-	m_typeName = _typeName;
-	glGenTextures(1, &m_id);
+	type_ = _typeName;
+	glGenTextures(1, &id_);
 	//stbi_set_flip_vertically_on_load(1);
 	unsigned char *data = nullptr;
 	int width, height, components;
@@ -120,7 +120,7 @@ Texture::Texture(const aiTexture* texture, std::string _typeName, bool _gamma)
 			format = GL_RGBA;
 		}
 
-		glBindTexture(GL_TEXTURE_2D, m_id);
+		glBindTexture(GL_TEXTURE_2D, id_);
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -139,7 +139,7 @@ Texture::Texture(const aiTexture* texture, std::string _typeName, bool _gamma)
 
 }
 
-unsigned int Texture::LoadCubemap(std::vector<std::string> _textureFaces)
+unsigned int Texture::loadCubemap(std::vector<std::string> _textureFaces)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -174,8 +174,8 @@ Texture::Texture(int _width, int _height, std::string _mode)
 {
 	if (_mode == "cubemap")
 	{
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+		glGenTextures(1, &id_);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, id_);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, nullptr);
@@ -190,8 +190,8 @@ Texture::Texture(int _width, int _height, std::string _mode)
 	else if (_mode == "cubemapTrilinear")
 	{
 		//enable trilinear filtering to use for prefiltering.
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+		glGenTextures(1, &id_);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, id_);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, nullptr);
@@ -205,8 +205,8 @@ Texture::Texture(int _width, int _height, std::string _mode)
 	else if (_mode == "cubemapPrefilter")
 	{
 		//generate mipmaps for different levels of roughness.
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+		glGenTextures(1, &id_);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, id_);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, nullptr);
@@ -220,8 +220,8 @@ Texture::Texture(int _width, int _height, std::string _mode)
 	}
 	else if (_mode == "brdfLUT")
 	{
-		glGenTextures(1, &m_id);
-		glBindTexture(GL_TEXTURE_2D, m_id);
+		glGenTextures(1, &id_);
+		glBindTexture(GL_TEXTURE_2D, id_);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, _width, _height, 0, GL_RG, GL_FLOAT, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

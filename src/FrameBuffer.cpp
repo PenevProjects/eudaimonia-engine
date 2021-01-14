@@ -1,17 +1,20 @@
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 #include "FrameBuffer.h"
 #include "Shader.h"
 #include <iostream>
 
 
 FrameBuffer::FrameBuffer(int _width, int _height) :
-	m_width(_width),
-	m_height(_height)
+	width_(_width),
+	height_(_height)
 {
-	glGenFramebuffers(1, &m_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-	CreateRenderQuad();
-	CreateRenderTexture();
-	CreateRenderBuffer();
+	glGenFramebuffers(1, &fbo_);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_);
+	createRenderQuad();
+	createRenderTexture();
+	createRenderBuffer();
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);	
@@ -19,30 +22,30 @@ FrameBuffer::FrameBuffer(int _width, int _height) :
 
 FrameBuffer::~FrameBuffer()
 {
-	if (m_textureId) { glDeleteTextures(1, &m_textureId); }
+	if (texture_id_) { glDeleteTextures(1, &texture_id_); }
 	if (m_screenQuadVAO) { glDeleteVertexArrays(1, &m_screenQuadVAO); }
-	if (m_rbo) { glDeleteRenderbuffers(1, &m_rbo); }
-	if (m_fbo) { glDeleteFramebuffers(1, &m_fbo); }
+	if (rbo_) { glDeleteRenderbuffers(1, &rbo_); }
+	if (fbo_) { glDeleteFramebuffers(1, &fbo_); }
 }
 
-void FrameBuffer::CreateRenderTexture()
+void FrameBuffer::createRenderTexture()
 {
-	glGenTextures(1, &m_textureId);
-	glBindTexture(GL_TEXTURE_2D, m_textureId);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glGenTextures(1, &texture_id_);
+	glBindTexture(GL_TEXTURE_2D, texture_id_);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_textureId, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id_, 0);
 }
-void FrameBuffer::CreateRenderBuffer()
+void FrameBuffer::createRenderBuffer()
 {
-	glGenRenderbuffers(1, &m_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_width, m_height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+	glGenRenderbuffers(1, &rbo_);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo_);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width_, height_);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_);
 }
 
-void FrameBuffer::CreateRenderQuad()
+void FrameBuffer::createRenderQuad()
 {
 	//screen quad vertices
 	float quadVertexData[] = {
@@ -73,7 +76,7 @@ void FrameBuffer::CreateRenderQuad()
 	glDeleteBuffers(1, &quadVBO);
 }
 
-void FrameBuffer::DrawRenderTextureQuad()
+void FrameBuffer::drawQuad()
 {
 	glBindVertexArray(m_screenQuadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

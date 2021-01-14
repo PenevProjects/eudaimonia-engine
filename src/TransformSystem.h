@@ -1,10 +1,7 @@
 #ifndef _TRANSFORM_SYSTEM_H
 #define _TRANSFORM_SYSTEM_H
 
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-
+#include <memory>
 
 #include "zero/System.h"
 
