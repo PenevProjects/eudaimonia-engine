@@ -1,0 +1,4 @@
+<map id="Skybox::Skybox" name="Skybox::Skybox">
+<area shape="rect" id="node1" title="Creates an environment skybox from an HDR equirectangular image." alt="" coords="5,5,124,32"/>
+<area shape="rect" id="node2" href="$class_skybox.html#a0ccc69da09158b32d404e17f7910a820" title=" " alt="" coords="172,5,312,32"/>
+</map>

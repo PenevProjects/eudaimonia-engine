@@ -1,0 +1,4 @@
+<map id="RenderingSystem::viewMatrix" name="RenderingSystem::viewMatrix">
+<area shape="rect" id="node1" title="Generates and returns a view matrix of the passed camera." alt="" coords="5,5,199,32"/>
+<area shape="rect" id="node2" href="$struct_transform.html#aa7b3910b0aa7c47a14584ff9e8dc0eec" title=" " alt="" coords="247,5,348,32"/>
+</map>

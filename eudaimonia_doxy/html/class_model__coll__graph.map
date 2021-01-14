@@ -1,0 +1,4 @@
+<map id="Model" name="Model">
+<area shape="rect" id="node1" title="Imports and processes 3D model files." alt="" coords="13,233,188,384"/>
+<area shape="rect" id="node2" href="$struct_i_resource.html" title="All resources must inherit from this interface." alt="" coords="5,5,196,185"/>
+</map>
