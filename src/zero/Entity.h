@@ -202,7 +202,6 @@ public:
 		return weak_to_instances_.lock();
 	}
 
-	virtual void doForAllInstances(std::function<void()> func_todo) {}
 };
 
 
