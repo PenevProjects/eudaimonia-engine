@@ -7,11 +7,11 @@ class Shader;
 class FrameBuffer {
 public:
 	/** \brief Framebuffer ctor.
-	*
-	* Constructs a FrameBuffer object and creates its render texture and render buffer object.
-	* @param _width Dimension of framebuffer width.
-	* @param _height Dimension of framebuffer height.
-	**/
+	 *
+	 * Constructs a FrameBuffer object and creates its render texture and render buffer object.
+	 * @param _width Dimension of framebuffer width.
+	 * @param _height Dimension of framebuffer height.
+	 **/
 	FrameBuffer::FrameBuffer(int _width, int _height);
 	~FrameBuffer();
 	FrameBuffer(const FrameBuffer&) = delete;

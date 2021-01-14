@@ -7,6 +7,7 @@
 
 struct Transform;
 
+/// Handles 3D spatial movement for entities.
 class TransformSystem : public zero::IBaseSystem
 {
 public:

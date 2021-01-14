@@ -19,6 +19,10 @@ struct Transform;
 class Mesh;
 class Texture;
 
+/** \brief Imports and processes 3D model files.
+ *
+ * Stores meshes and loaded textures after processing with ASSIMP.
+ **/
 class Model : public IResource
 {
 	friend class Texture;

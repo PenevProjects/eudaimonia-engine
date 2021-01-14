@@ -9,6 +9,10 @@
 
 struct IResource;
 
+/** \brief Controls all instances of resources in the engine.
+ *
+ * Stores resources and handles logic for returning a pointer to an already existing resource or creating a new one.
+ **/
 class ResourceSystem : public zero::IBaseSystem
 {
 	std::map<std::string, std::shared_ptr<IResource>> resources_;

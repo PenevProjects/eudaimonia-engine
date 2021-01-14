@@ -7,7 +7,7 @@
 
 #include "zero/Component.h"
 
-
+/// Stores 3D spatial movement for entities.
 struct Transform : public zero::IBaseComponent
 {
 	void setup(glm::vec3 _position = glm::vec3(1.0f), glm::vec3 _eulerAngles = glm::vec3(0.0f), glm::vec3 scale = glm::vec3(1.0f));

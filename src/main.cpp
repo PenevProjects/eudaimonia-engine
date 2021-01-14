@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
 	//Graphics Pipeline Setup
 	glm::mat4 view_mat = rendering_s->viewMatrix(*cam1_transform);
-	glm::mat4 proj_mat = rendering_s->perspectiveProjection(*cam1_camera);
+	glm::mat4 proj_mat = rendering_s->projectionPerspective(*cam1_camera);
 	std::shared_ptr<Shader> lampShader = std::make_shared<Shader>("../src/shaders/pure-white.vert", "../src/shaders/pure-white.frag");
 	std::shared_ptr<Shader> skyboxShader = std::make_shared<Shader>("../src/shaders/skybox.vert", "../src/shaders/skybox.frag");
 	std::shared_ptr<Shader> pbrShader = std::make_shared<Shader>("../src/shaders/pbr/pbr.vert", "../src/shaders/pbr/pbr.frag");
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 		Time::displayFPSinWindowTitle(rendering_s->window, rendering_s->title);
 
 		view_mat = rendering_s->viewMatrix(*cam1_transform);
-		proj_mat = rendering_s->perspectiveProjection(*cam1_camera);
+		proj_mat = rendering_s->projectionPerspective(*cam1_camera);
 	
 		if (pp_flag)
 		{
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 		glActiveTexture(GL_TEXTURE0 + skyboxSamplerID + 3);
 		glBindTexture(GL_TEXTURE_2D, skybox->brdf_lut().lock()->id());
 
-		one_model->RenderMeshes();
+		one_model->render();
 
 		pbrShader->stopUsing();
 
@@ -193,9 +193,9 @@ int main(int argc, char *argv[])
 		lightPos[0].x = translation;
 		lamp0_transform->position = lightPos[0];
 
-		lamp0_model->RenderMeshes();
-		lamp1_model->RenderMeshes();
-		lamp2_model->RenderMeshes();
+		lamp0_model->render();
+		lamp1_model->render();
+		lamp2_model->render();
 		lampShader->stopUsing();
 
 

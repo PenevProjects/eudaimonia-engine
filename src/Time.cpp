@@ -2,7 +2,6 @@
 #include <sstream>
 #include <iostream>
 
-//Referenced from "Acquiring high resolution time stamps". https://docs.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps
 
 LARGE_INTEGER Time::starting_time_{ 0 };
 LARGE_INTEGER Time::ending_time_{ 0 };

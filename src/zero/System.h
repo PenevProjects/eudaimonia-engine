@@ -87,7 +87,7 @@ public:
 		}
 	}
 
-	/** All user-defined component types *must* be declared by calling this function.
+	/** All user-defined system types *must* be added by calling this function.
 	*
 	* Creates the System.
 	*/

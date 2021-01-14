@@ -38,10 +38,15 @@ public:
 };
 
 
-
+/** \brief Input System
+ *
+ * Holds a reference to the keyboard and mouse.
+ **/
 class InputSystem : public zero::IBaseSystem
 {
+	//TODO: Keyboard handling needs to be improved
 	std::unique_ptr<Keyboard> keyboard_;
+	//TODO: Mouse handling needs to be improved
 	std::unique_ptr<Mouse> mouse_;
 public:
 	std::vector<std::pair<std::shared_ptr<Transform>, float>> mouse_controllers_;
@@ -49,7 +54,9 @@ public:
 	void setup();
 	void tick();
 	void update() {}
+	// Called in the main game loop. Move with WASD.
 	void controlFromKeyboard(std::shared_ptr<Transform> transform, float speed);
+	// Uses relative motion to look around.
 	void attachMouseController(std::shared_ptr<Transform> transform, float sensitivity);
 	Keyboard* keyboard() { return keyboard_.get(); };
 	Mouse* mouse() { return mouse_.get(); }

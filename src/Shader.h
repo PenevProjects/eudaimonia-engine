@@ -25,20 +25,6 @@ public:
 	void use();
 	///Unbinds current shader object
 	void stopUsing();
-	/**
-	*\brief Sets viewMatrix of current shader.
-	*
-	*Binds the passed Camera's viewMatrix to the shader's internal uniform variable and sets projection mode
-	*@param _cam Camera whose viewMatrix is to be used.
-	*@param pesepective3D [true | false] sets perspective projection if true, and orthographic projection if false.
-	*/
-	//void setViewAndProjectionMatrix(const Camera& _cam, bool perspective3D);
-
-
-	/******************
-	* Uniform variable setters.
-	*******************/
-
 	void setBool(const std::string &name, GLboolean value) const
 	{
 		glUniform1i(glGetUniformLocation(shader_program_, name.c_str()), (int)value);

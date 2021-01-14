@@ -31,6 +31,12 @@ struct Colors {
 	float shininess;
 };
 
+/** \brief Mesh class. 
+ *
+ * Stores vertices, indices and textures of each mesh, loaded in by ASSIMP.
+ * Currently only handles PBS materials from Maya.
+ * To be scaled up to work with many materials in future versions when different shading styles are introduced.
+ **/
 class Mesh {
 	friend class Texture;
 public:

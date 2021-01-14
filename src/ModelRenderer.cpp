@@ -11,7 +11,7 @@ void ModelRenderer::setup(std::shared_ptr<Model> model, std::shared_ptr<Transfor
 	this->transform_ = transform;
 	this->shader_ = shader;
 }
-void ModelRenderer::RenderMeshes()
+void ModelRenderer::render()
 {
 	shader_.lock()->setMat4("u_Model", transform_.lock()->model_matrix());
 	for (auto& mesh : model_->meshes_)

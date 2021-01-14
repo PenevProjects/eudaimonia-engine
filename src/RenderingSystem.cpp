@@ -78,11 +78,11 @@ glm::mat4 RenderingSystem::viewMatrix(const Transform& transform)
 {
 	return glm::lookAt(transform.position, {transform.position + transform.forward()}, transform.up());
 }
-glm::mat4 RenderingSystem::perspectiveProjection(const Camera& camera)
+glm::mat4 RenderingSystem::projectionPerspective(const Camera& camera)
 {
 	return glm::perspective(glm::radians(camera.fov_), (float)screen_width / (float)screen_height, 0.1f, 1000.0f);
 }
-glm::mat4 RenderingSystem::orthoProjection()
+glm::mat4 RenderingSystem::projectionOrtho()
 {
 	return glm::ortho(-float(screen_width / 2), float(screen_width / 2), float(screen_height / 2), -float(screen_height / 2), 0.1f, 100.0f);
 }

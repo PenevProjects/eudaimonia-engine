@@ -4,8 +4,7 @@
 #include <windows.h>
 #include <SDL2/SDL.h>
 #include <string>
-
-
+///Referenced from "Acquiring high resolution time stamps". https://docs.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps
 class Time
 {
 private:

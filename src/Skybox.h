@@ -36,7 +36,7 @@ private:
 	std::shared_ptr<Texture> prefilter_map_;
 	std::shared_ptr<Texture> brdf_lut_;
 
-	std::shared_ptr<FrameBuffer> m_framebuffer;
+	std::shared_ptr<FrameBuffer> framebuffer_;
 	//todo:
 	//void transformHDRtoCubemap();	
 	//void generateEnvironmentMap();
