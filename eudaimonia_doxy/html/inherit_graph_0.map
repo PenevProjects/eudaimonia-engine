@@ -1,6 +1,0 @@
-<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,56,160,83"/>
-<area shape="rect" id="node2" href="$struct_camera.html" title=" " alt="" coords="229,5,296,32"/>
-<area shape="rect" id="node3" href="$struct_model_renderer.html" title=" " alt="" coords="208,56,317,83"/>
-<area shape="rect" id="node4" href="$struct_transform.html" title="Stores 3D spatial movement for entities." alt="" coords="223,107,302,133"/>
-</map>
