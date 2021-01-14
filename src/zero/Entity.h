@@ -352,7 +352,7 @@ private:
 		}
 		else
 		{
-			std::cout << "GET_COMPONENT::ERROR::There's no such component attached to entity with id " << entity->id();
+			std::cout << "GET_COMPONENT::There's no component of " << typeid(T_ComponentInstance).name() << " attached to entity with id " << entity->id();
 			return nullptr;
 		}
 
