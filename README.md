@@ -2,8 +2,8 @@
 
 This repo contains 2 frameworks:
 
-**zero** – a data-oriented Entity-Component-System header-only framework in C++17
-**eudaimonia** – 3D game engine prototype built with **zero**
+**zero** – a data-oriented Entity-Component-System header-only framework in C++17  
+**eudaimonia** – 3D game engine prototype built with **zero**  
 
  
 
