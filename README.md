@@ -13,7 +13,7 @@ This repo contains 2 frameworks:
 
 # eudaimonia #
 
-"eudaimonia" is a game engine prototype created in C++17 on top of the "zero" ECS framework.
+"eudaimonia" is a 3D PBR game engine prototype created in C++17 on top of the "zero" ECS framework.
 
 ## demo ##
 
