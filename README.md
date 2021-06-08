@@ -1,3 +1,12 @@
+# Overview #
+
+This repo contains 2 frameworks:
+
+**zero** – a data-oriented Entity-Component-System header-only framework in C++17
+**eudaimonia** – 3D game engine prototype built with **zero**
+
+ 
+
 # zero #
 
 "zero" is a header-only Entity-Component-System framework created in C++17.
@@ -18,5 +27,6 @@ Keybind "F" toggles mouse lock.
     mkdir build
     cd build
     cmake ..
-```
-2. Make sure you compile in "Debug" mode and target architecture is "Win32". 
+``` 
+3. Set "eudaimonia" as start-up project.
+4. Make sure you compile in "Debug" mode and target architecture is "Win32".

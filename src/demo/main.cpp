@@ -7,31 +7,16 @@
 #include <exception>
 #include <vector>
 
-#include "../zero/Core.h"
-#include "../zero/Entity.h"
-#include "../zero/Component.h"
-#include "../zero/System.h"
+#include "../zero/zero.h"
 
-#include "../TransformSystem.h"
-#include "../RenderingSystem.h"
-#include "../InputSystem.h"
-#include "../ResourceSystem.h"
-#include "../Shader.h"
-#include "../Camera.h"
-#include "../Time.h"
-#include "../Texture.h"
-#include "../Model.h"
-#include "../Framebuffer.h"
-#include "../Skybox.h"
-#include "../Transform.h"
-#include "../Resource.h"
-#include "../ModelRenderer.h"
+#include "../eudaimonia.h"
 
+//DEMO
 
 int main(int argc, char *argv[])
 {
 	bool pp_flag = false;
-	bool car_flag = false;
+	bool camera_model_flag = false;
 	char selection;
 	std::cout << "> Enable post-processing?: [y | n]: ";
 	std::cin >> selection;
@@ -43,20 +28,23 @@ int main(int argc, char *argv[])
 	std::cin >> selection;
 	if (selection == 'y' || selection == 'Y')
 	{
-		car_flag = true;
+		camera_model_flag = true;
 	}
 
-
+	// Initialize zero framework
 	std::unique_ptr<zero::Core> core = zero::Core::createCore();
 	auto em = core->entity_manager();
 	auto cm = core->component_manager();
 	auto sm = core->systems_manager();
 
-	auto movement_s = sm->addSystem<TransformSystem>();
-	auto rendering_s = sm->addSystem<RenderingSystem>();
-	auto input_s = sm->addSystem<InputSystem>();
-	auto resource_s = sm->addSystem<ResourceSystem>();
+	// Initialize System types
+	// They tick in order of initialization
+	auto movement_s = sm->createSystem<TransformSystem>();
+	auto rendering_s = sm->createSystem<RenderingSystem>();
+	auto input_s = sm->createSystem<InputSystem>();
+	auto resource_s = sm->createSystem<ResourceSystem>();
 
+	// Initialize Component types
 	cm->createComponentType<Transform>();
 	cm->createComponentType<Camera>();
 	cm->createComponentType<ModelRenderer>();
@@ -66,7 +54,7 @@ int main(int argc, char *argv[])
 	auto cam1_camera = cam1->addComponent<Camera>();
 	input_s->attachMouseController(cam1_transform, 0.5f);
 
-	//Graphics Pipeline Setup
+	// Graphics Pipeline Setup
 	glm::mat4 view_mat = rendering_s->viewMatrix(*cam1_transform);
 	glm::mat4 proj_mat = rendering_s->projectionPerspective(*cam1_camera);
 	std::shared_ptr<Shader> lampShader = std::make_shared<Shader>("../src/shaders/pure-white.vert", "../src/shaders/pure-white.frag");
@@ -75,32 +63,35 @@ int main(int argc, char *argv[])
 	std::shared_ptr<Shader> geShader = std::make_shared<Shader>("../src/shaders/pbr/framebuf-quad.vert", "../src/shaders/glowing-edges.frag");
 	std::shared_ptr<FrameBuffer> ppFramebuf = std::make_shared<FrameBuffer>(rendering_s->screen_width, rendering_s->screen_height);
 
-	//Max number of texture units that can be used concurrently from a model file is currently 9. 
+	// Max number of texture units that can be used concurrently from a model file is currently 9. 
 	unsigned int skyboxSamplerID = 10;
-	//skybox - this also constructs maps for irradiance, prefilter and brdfLUT
+	// skybox - this also constructs maps for irradiance, prefilter and brdfLUT
 	std::shared_ptr<Skybox> skybox;
-	skybox = std::make_shared<Skybox>("../assets/hdr/Road_to_MonumentValley_Ref.hdr", 2048);
+	skybox = std::make_shared<Skybox>("../assets/hdr/map.hdr", 4096);
 
-	//Entities setup
-
+	// Entities setup
 	zero::Entity* one = em->createEntity();
 	auto one_transform = one->addComponent<Transform>();
-	one_transform->scale = glm::vec3{ 5.0f };
-	one_transform->rotation_euler.x = glm::radians(90.0f);
-	auto sword_model_file = resource_s->load<Model>("../assets/sword/sword.fbx");
+	one_transform->position += glm::vec3{ 0.0f, -5.0f, -20.0f };
+	one_transform->scale = glm::vec3{ 0.5f };
+	one_transform->rotation_euler.x = glm::radians(-90.0f);
+	auto sword_model_file = resource_s->load<Model>("../assets/tv/tv.fbx");
 	auto one_model = one->addComponent<ModelRenderer>(sword_model_file, one_transform, pbrShader);
 
 	zero::Entity* two = em->createEntity();
 	auto two_transform = two->addComponent<Transform>();
-	two_transform->scale = glm::vec3{ 0.3f };
-	if (car_flag)
+	std::shared_ptr<ModelRenderer> two_model;
+	if (camera_model_flag)
 	{
-		auto car_model_file = resource_s->load<Model>("../assets/car/car.fbx");
+		two_transform->scale = glm::vec3{ 50.0f };
+		two_transform->rotation_euler.x = glm::radians(-90.0f);
+		auto car_model_file = resource_s->load<Model>("../assets/cam/cam.fbx");
 		auto car_model = two->addComponent<ModelRenderer>(car_model_file, two_transform, pbrShader);
-		one_transform->position += glm::vec3(0.0f, 10.0f, 5.0f);
+		one_transform->position += glm::vec3(20.0f, 0.0f, 0.0f);
+		two_model = two->getComponent<ModelRenderer>();
 	}
-	auto two_model = two->getComponent<ModelRenderer>();
 
+	// setup light positions
 	glm::vec3 lightPos[] {
 		glm::vec3{ 0.0f, 1.0f, 12.0f},
 		glm::vec3{ 10.0f, 3.0f, 0.0f},
@@ -111,17 +102,17 @@ int main(int argc, char *argv[])
 		glm::vec3{100.0f, 100.0f, 100.0f},
 		glm::vec3{100.0f, 100.0f, 100.0f},
 	};
-	//lamp 0
-	auto cube = resource_s->load<Model>("../assets/cube.obj");
-	//lamp 0 - dynamic, large
+	// lamp 0
+	auto cube = resource_s->load<Model>("../assets/cube/cube.obj");
+	// lamp 0 - dynamic, large
 	auto lamp0 = em->createEntity();
 	auto lamp0_transform = lamp0->addComponent<Transform>(lightPos[0], glm::vec3(0.0f), glm::vec3(0.4f));
 	auto lamp0_model = lamp0->addComponent<ModelRenderer>(cube, lamp0_transform, lampShader);
-	//lamp 1 - static, small
+	// lamp 1 - static, small
 	auto lamp1 = em->createEntity();
 	auto lamp1_transform = lamp1->addComponent<Transform>(lightPos[1], glm::vec3(0.0f), glm::vec3(0.2f));
 	auto lamp1_model = lamp1->addComponent<ModelRenderer>(cube, lamp1_transform, lampShader);
-	//lamp 2 - static, small
+	// lamp 2 - static, small
 	auto lamp2 = em->createEntity();
 	auto lamp2_transform = lamp2->addComponent<Transform>(lightPos[2], glm::vec3(0.0f), glm::vec3(0.2f));
 	auto lamp2_model = lamp2->addComponent<ModelRenderer>(cube, lamp2_transform, lampShader);
@@ -129,7 +120,7 @@ int main(int argc, char *argv[])
 
 
 
-
+	// PBR shader variable setup
 	pbrShader->use();
 	pbrShader->setInt("u_irradianceMap", skyboxSamplerID + 1);
 	pbrShader->setInt("u_prefilterMap", skyboxSamplerID + 2);
@@ -143,7 +134,7 @@ int main(int argc, char *argv[])
 	}
 	pbrShader->stopUsing();
 
-	//SKYBOX////////////////////////////////////////////////
+	// SKYBOX shader variable setup
 	skyboxShader->use();
 	skyboxShader->setInt("u_environmentCubemap", skyboxSamplerID);
 	skyboxShader->stopUsing();
@@ -154,7 +145,7 @@ int main(int argc, char *argv[])
 	geShader->setFloat("u_screenHeight", (float)rendering_s->screen_height);
 	geShader->stopUsing();
 
-	//wireframe mode
+	// wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	Time::update();
@@ -162,9 +153,11 @@ int main(int argc, char *argv[])
 
 	while (!input_s->quit_flag_)
 	{
+		// tick systems
 		sm->tickAll();
+		// use keyboard to control camera1's transform
 		input_s->controlFromKeyboard(cam1_transform, 10.0f);
-		//time calculations
+		// time calculations
 		Time::update();
 		Time::displayFPSinWindowTitle(rendering_s->window, rendering_s->title);
 
@@ -179,6 +172,7 @@ int main(int argc, char *argv[])
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// bind dynamic variables to pbr shader
 		pbrShader->use();
 		pbrShader->setVec3("u_viewPos", cam1_transform->position);
 		pbrShader->setVec3("u_lightPos[0]", lightPos[0]);
@@ -194,7 +188,7 @@ int main(int argc, char *argv[])
 		glBindTexture(GL_TEXTURE_2D, skybox->brdf_lut().lock()->id());
 
 		one_model->render();
-		if (car_flag) 
+		if (camera_model_flag) 
 		{
 			two_model->render();
 		}
@@ -226,6 +220,7 @@ int main(int argc, char *argv[])
 		skybox->renderCube();
 		skyboxShader->stopUsing();
 
+		// if post-processing enabled
 		if (pp_flag)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);

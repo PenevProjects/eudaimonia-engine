@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "ModelRenderer.h"
 
+// Default screen resolution values
 int RenderingSystem::screen_width = 1280;
 int RenderingSystem::screen_height = 720;
 

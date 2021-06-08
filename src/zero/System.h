@@ -8,6 +8,7 @@
 #include <map>
 #include <bitset>
 #include <typeindex>
+#include <unordered_map>
 
 #include "Entity.h"
 #include "help/NonCopyable.h"
@@ -56,7 +57,7 @@ class SystemsManager :
 	 * key is the system type index
 	 * unique_ptrs because we need definitive ownership in this vector.
 	 */
-	std::map<std::type_index, std::shared_ptr<IBaseSystem>> systems_;
+	std::unordered_map<std::type_index, std::shared_ptr<IBaseSystem>> systems_;
 	std::weak_ptr<EntityManager> entity_manager_;
 	std::weak_ptr<ComponentManager> component_manager_;
 
@@ -82,7 +83,7 @@ public:
 		}
 		else
 		{
-			std::cout << "GET_SYSTEM_FROM_TYPENAME::ERROR::Can't get ComponentTypeManager from typename." << std::endl;
+			std::cout << "GET_SYSTEM_FROM_TYPENAME::ERROR::Can't get System from typename." << std::endl;
 			return nullptr;
 		}
 	}
@@ -92,7 +93,7 @@ public:
 	* Creates the System.
 	*/
 	template<typename T_System, typename ... Args>
-	std::shared_ptr<T_System> addSystem(Args&& ... args)
+	std::shared_ptr<T_System> createSystem(Args&& ... args)
 	{
 		std::shared_ptr<T_System> created = std::make_shared<T_System>();
 		created->system_manager_ = weak_from_this();
@@ -102,7 +103,7 @@ public:
 		}
 		else
 		{
-			std::cout << "ADD_SYSTEM::ERROR::Could not create system. Please make sure this System derives from IBaseSystem and it has a constructor with no parameters." << std::endl;
+			std::cout << "ADD_SYSTEM::ERROR::Could not create system. Please make sure this System derives from IBaseSystem." << std::endl;
 		}
 
 		systems_.emplace(std::type_index(typeid(T_System)), std::move(created));

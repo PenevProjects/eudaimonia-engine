@@ -29,7 +29,10 @@ add_executable(eudaimonia
 	src/zero/Component.h
 	src/zero/System.h
 	src/zero/help/NonCopyable.h
+	src/zero/zero.h
 
+
+	src/eudaimonia.h
 
 	src/Transform.h
 	src/Transform.cpp
