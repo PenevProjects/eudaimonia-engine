@@ -1,14 +1,13 @@
+# TO RUN:
+
+Download a release version and run the .exe.
+
 # Overview #
 
 This repo contains 2 frameworks:
 
-<<<<<<< HEAD
 **zero** – a data-oriented Entity-Component-System header-only framework in C++17
 **eudaimonia** – 3D game engine prototype built with **zero**
-=======
-**zero** – a data-oriented Entity-Component-System header-only framework in C++17  
-**eudaimonia** – 3D game engine prototype built with **zero**  
->>>>>>> cdb5714c4c6da917b140fd85d1ee67d23fce25c9
 
  
 
