@@ -2,8 +2,13 @@
 
 This repo contains 2 frameworks:
 
+<<<<<<< HEAD
 **zero** – a data-oriented Entity-Component-System header-only framework in C++17
 **eudaimonia** – 3D game engine prototype built with **zero**
+=======
+**zero** – a data-oriented Entity-Component-System header-only framework in C++17  
+**eudaimonia** – 3D game engine prototype built with **zero**  
+>>>>>>> cdb5714c4c6da917b140fd85d1ee67d23fce25c9
 
  
 
@@ -13,7 +18,7 @@ This repo contains 2 frameworks:
 
 # eudaimonia #
 
-"eudaimonia" is a game engine prototype created in C++17 on top of the "zero" ECS framework.
+"eudaimonia" is a 3D PBR game engine prototype created in C++17 on top of the "zero" ECS framework.
 
 ## demo ##
 
