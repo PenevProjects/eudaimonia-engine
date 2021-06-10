@@ -7,6 +7,13 @@
 int RenderingSystem::screen_width = 1280;
 int RenderingSystem::screen_height = 720;
 
+// Make sure nVidia GPU is being used. Otherwise PBR won't work. From https://stackoverflow.com/a/14041061 ///////////////////////////////////////
+extern "C"
+{
+	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+}
+///////////////////////////////////////////////////////////////////////////////
+
 void RenderingSystem::setup()
 {
 	// Global SDL state
