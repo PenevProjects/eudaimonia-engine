@@ -1,6 +1,8 @@
 # TO RUN:
 
 Download a release version and run the .exe.
+*Needs to be running on a Dedicated GPU for the PBR shaders to work!  
+If you are on a laptop and are only getting hard colors without reflections, please use a GPU to run the application.*
 
 # Overview #
 
